@@ -4,7 +4,7 @@ export default function Home() {
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">RealPeep</h1>
         <p className="text-gray-600">Real Estate Transaction Management</p>
-        <p className="text-sm text-gray-500 mt-4">Clean Next.js boilerplate ready for development</p>
+        <p className="text-sm text-gray-500 mt-4">🚀 Deployed to Vercel!</p>
       </div>
     </div>
   );
