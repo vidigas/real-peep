@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { cn } from '../lib/utils';
 
 interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
@@ -23,6 +23,7 @@ export function Checkbox({
   disabled,
   ...props
 }: CheckboxProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const isChecked = checked || indeterminate;
   const isDisabled = disabled;
 
@@ -125,7 +126,7 @@ export function Checkbox({
             : 'bg-white border-gray-200 hover:border-primary-300 hover:bg-gray-50',
           className
         )}
-        onClick={() => !isDisabled && props.onChange?.({ target: { checked: !isChecked } } as any)}
+        onClick={() => !isDisabled && props.onChange?.({ target: { checked: !isChecked } } as React.ChangeEvent<HTMLInputElement>)}
       >
         {checkboxElement}
         <div className="flex-1 min-w-0">

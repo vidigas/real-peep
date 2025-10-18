@@ -49,23 +49,19 @@ export function RadioGroup({
 
   return (
     <RadioGroupContext.Provider value={contextValue}>
-      <div role="radiogroup" onKeyDown={(e) => {
-          const values = React.Children.toArray(children) as any[];
-          const idx = values.findIndex((c:any) => c?.props?.value === value);
-          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); const next = values[(idx+1)%values.length]; next?.props?.onChange?.(next.props.value); }
-          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); const prev = values[(idx-1+values.length)%values.length]; prev?.props?.onChange?.(prev.props.value); }
+      <div
+        role="radiogroup"
+        onKeyDown={(e) => {
+          const values = React.Children.toArray(children) as React.ReactElement[];
+          const idx = values.findIndex((c: React.ReactElement) => (c?.props as Record<string, unknown>)?.value === value);
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); const next = values[(idx+1)%values.length]; ((next?.props as Record<string, unknown>)?.onChange as ((value: unknown) => void))?.((next.props as Record<string, unknown>).value); }
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); const prev = values[(idx-1+values.length)%values.length]; ((prev?.props as Record<string, unknown>)?.onChange as ((value: unknown) => void))?.((prev.props as Record<string, unknown>).value); }
         }}
         className={cn(
           'flex',
           orientation === 'horizontal' ? 'flex-row gap-spacing-md' : 'flex-col gap-spacing-sm',
           className
         )}
-        role="radiogroup" onKeyDown={(e) => {
-          const values = React.Children.toArray(children) as any[];
-          const idx = values.findIndex((c:any) => c?.props?.value === value);
-          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); const next = values[(idx+1)%values.length]; next?.props?.onChange?.(next.props.value); }
-          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); const prev = values[(idx-1+values.length)%values.length]; prev?.props?.onChange?.(prev.props.value); }
-        }}
       >
         {children}
       </div>
@@ -94,7 +90,7 @@ export function RadioGroupItem({
 
   const { name, value: selectedValue, onChange, disabled, size, variant } = context;
   const isChecked = selectedValue === value;
-  const isDisabled = disabled || props.disabled;
+  const isDisabled = disabled || (props as { disabled?: boolean }).disabled;
 
   return (
     <RadioButton

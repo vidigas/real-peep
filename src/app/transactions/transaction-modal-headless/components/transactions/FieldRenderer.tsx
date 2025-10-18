@@ -4,9 +4,6 @@ import { Label, RadioGroup, RadioButton, Select, ButtonGroup, Input, Button, But
 import React from 'react';
 import { Controller, useFormContext, useFieldArray } from 'react-hook-form';
 
-
-type Option = { value: string; label: string };
-
 function parseCurrencyToCents(input: string): number | undefined {
   if (!input) return undefined;
   const raw = input.replace(/[^\d.,]/g, '').replace(',', '.');
@@ -25,7 +22,7 @@ function parsePercent(input: string): number | undefined {
   return num;
 }
 
-export function FieldRenderer({ spec }: { spec: any }) {
+export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
   const { control, setValue, watch } = useFormContext();
 
   const col = spec.width === '1/2' ? 'col-span-12 md:col-span-6'
@@ -34,12 +31,12 @@ export function FieldRenderer({ spec }: { spec: any }) {
     : 'col-span-12';
 
   if (spec.kind === 'radio-cards') {
-    const value = watch(spec.name);
+    const value = watch(spec.name as string);
     return (
       <div className={col}>
-        <Label className="sr-only">{spec.label ?? ''}</Label>
-        <RadioGroup value={value} onChange={(v)=>setValue(spec.name, v)} variant="card" size="lg">
-          {spec.options?.map((o: Option) => (
+        <Label className="sr-only">{spec.label as string ?? ''}</Label>
+        <RadioGroup value={value} onChange={(v)=>setValue(spec.name as string, v)} variant="card" size="lg">
+          {(spec.options as Array<{value: string, label: string}> || [])?.map((o) => (
             <RadioButton key={o.value} value={o.value}>{o.label}</RadioButton>
           ))}
         </RadioGroup>
@@ -51,10 +48,10 @@ export function FieldRenderer({ spec }: { spec: any }) {
     return (
       <div className={col}>
         <Controller
-          name={spec.name}
+          name={spec.name as string}
           control={control}
           render={({ field, fieldState }) => (
-            <Select label={spec.label} placeholder={spec.placeholder || 'Select'} options={spec.options || []} value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
+            <Select label={spec.label as string} placeholder={spec.placeholder as string || 'Select'} options={spec.options as Array<{value: string, label: string}> || []} value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
           )}
         />
       </div>
@@ -65,18 +62,18 @@ export function FieldRenderer({ spec }: { spec: any }) {
     return (
       <div className={col}>
         <Controller
-          name={spec.name}
+          name={spec.name as string}
           control={control}
           render={({ field }) => (
             <div>
-              {spec.label && <Label className="mb-2 block">{spec.label}</Label>}
+              {(spec.label as string) && <Label className="mb-2 block">{spec.label as string}</Label>}
   
               <ButtonGroup
                 variant="radio"          // or "segmented" if you want the segmented-control look
                 value={field.value}
                 onChange={field.onChange}
               >
-                {(spec.options ?? []).map((opt: { value: string | number; label: React.ReactNode }) => (
+                {(spec.options as Array<{value: string | number, label: React.ReactNode}> || []).map((opt) => (
                   <ButtonGroupItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </ButtonGroupItem>
@@ -94,10 +91,10 @@ export function FieldRenderer({ spec }: { spec: any }) {
     return (
       <div className={col}>
         <Controller
-          name={spec.name}
+          name={spec.name as string}
           control={control}
           render={({ field, fieldState }) => (
-            <Input type="date" label={spec.label} placeholder={spec.placeholder} {...field} error={fieldState.error?.message} />
+            <Input type="date" label={spec.label as string} placeholder={spec.placeholder as string} {...field} error={fieldState.error?.message} />
           )}
         />
       </div>
@@ -108,22 +105,21 @@ export function FieldRenderer({ spec }: { spec: any }) {
     return (
       <div className={col}>
         <Controller
-          name={spec.name}
+          name={spec.name as string}
           control={control}
           render={({ field, fieldState }) => (
             <Input
-              label={spec.label}
-              placeholder={spec.placeholder}
+              label={spec.label as string}
+              placeholder={spec.placeholder as string}
               value={
                 spec.kind === 'currency' ? formatCentsToCurrency(field.value) :
                 spec.kind === 'percent' ? (field.value ?? '') : field.value
               }
-              onChange={(e:any) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 if (spec.kind === 'currency') field.onChange(parseCurrencyToCents(e.target.value));
                 else if (spec.kind === 'percent') field.onChange(parsePercent(e.target.value));
                 else field.onChange(e);
               }}
-              variant={spec.kind === 'currency' ? 'currency' : undefined}
               error={fieldState.error?.message}
             />
           )}
@@ -133,7 +129,7 @@ export function FieldRenderer({ spec }: { spec: any }) {
   }
 
   if (spec.kind === 'fees') {
-    return <FeesRepeater name={spec.name} />;
+    return <FeesRepeater name={spec.name as string} />;
   }
 
   return null;
@@ -207,7 +203,7 @@ function FeesRepeater({ name }:{ name:string }) {
                   name={`${name}.${idx}.amount_cents` as const}
                   control={control}
                   render={({ field }) => (
-                    <Input label="Amount" placeholder="$ 0.00" value={formatCentsToCurrency(field.value)} onChange={(e:any)=>field.onChange(parseCurrencyToCents(e.target.value))} variant="currency" />
+                    <Input label="Amount" placeholder="$ 0.00" value={formatCentsToCurrency(field.value)} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>field.onChange(parseCurrencyToCents(e.target.value))} />
                   )}
                 />
               ) : (
@@ -215,7 +211,7 @@ function FeesRepeater({ name }:{ name:string }) {
                   name={`${name}.${idx}.percent` as const}
                   control={control}
                   render={({ field }) => (
-                    <Input label="Percent" placeholder="%" value={field.value ?? ''} onChange={(e:any)=>field.onChange(parsePercent(e.target.value))} />
+                    <Input label="Percent" placeholder="%" value={field.value ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>field.onChange(parsePercent(e.target.value))} />
                   )}
                 />
               )}

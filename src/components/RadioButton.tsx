@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/utils';
 
-interface RadioButtonProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface RadioButtonProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
   description?: string;
   size?: 'sm' | 'md' | 'lg';
@@ -154,7 +154,7 @@ export function RadioButton({
             : 'bg-white border-gray-200 hover:border-primary-300 hover:bg-gray-50',
           className
         )}
-        onClick={() => !isDisabled && props.onChange?.({ target: { checked: !isChecked } } as any)}
+        onClick={() => !isDisabled && props.onChange?.({ target: { checked: !isChecked } } as React.ChangeEvent<HTMLInputElement>)}
       >
         {radioElement}
         <div className="flex-1 min-w-0">

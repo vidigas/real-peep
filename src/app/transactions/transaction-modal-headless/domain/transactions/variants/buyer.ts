@@ -2,8 +2,6 @@
 import { z } from 'zod';
 import { VariantSpec, TxnStatus, FeeRow } from '../schema';
 
-const STATES = ['AL','AK','AZ','AR','CA','CO','CT','DC','DE','FL','GA','HI','IA','ID','IL','IN','KS','KY','LA','MA','MD','ME','MI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VA','VT','WA','WI','WV'] as const;
-
 const B0 = z.object({ type: z.literal('buyer') });
 const B1 = z.object({
   buyer_full_name: z.string().min(1, 'Required'),
@@ -25,6 +23,7 @@ export type BuyerForm = z.infer<typeof BuyerSchema>;
 
 export const BuyerVariant: VariantSpec<BuyerForm> = {
   type: 'buyer',
+  rootSchema: BuyerSchema,
   defaults: { type:'buyer', status:'active', fees:[] },
   steps: [
     {
@@ -34,7 +33,8 @@ export const BuyerVariant: VariantSpec<BuyerForm> = {
         { value:'seller', label:'Seller' },
         { value:'tenant', label:'Tenant' },
         { value:'landlord', label:'Landlord' },
-      ]}], schema: B0
+      ]}],
+      fieldNames: ['type']
     },
     {
       id:'buyer', title:'Buyer Details',
@@ -44,7 +44,7 @@ export const BuyerVariant: VariantSpec<BuyerForm> = {
         { name:'agreement_start', label:'Start Date', kind:'date', width:'1/2' },
         { name:'agreement_end', label:'Expiration Date', kind:'date', width:'1/2' },
       ],
-      schema: B1,
+      fieldNames: ['buyer_full_name', 'budget_cents', 'agreement_start', 'agreement_end']
     },
     {
       id:'commission', title:'Commission Details',
@@ -60,7 +60,7 @@ export const BuyerVariant: VariantSpec<BuyerForm> = {
         ]},
         { name:'lead_source_other', label:'', kind:'text', width:'1/2', placeholder:'If Other, type here' },
       ],
-      schema: B2,
+      fieldNames: ['buyer_agent_pct', 'broker_share_pct', 'fees', 'lead_source', 'lead_source_other']
     },
     {
       id:'status', title:'Status',
@@ -68,7 +68,8 @@ export const BuyerVariant: VariantSpec<BuyerForm> = {
         { value:'active', label:'Active' },
         { value:'pending', label:'Pending' },
         { value:'closed', label:'Closed' },
-      ]}], schema: B3
+      ]}],
+      fieldNames: ['status']
     }
   ],
   toPayload: (d) => d,

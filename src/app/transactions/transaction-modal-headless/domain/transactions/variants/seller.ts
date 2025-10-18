@@ -40,6 +40,7 @@ export type SellerForm = z.infer<typeof SellerSchema>;
 
 export const SellerVariant: VariantSpec<SellerForm> = {
   type: 'seller',
+  rootSchema: SellerSchema,
   defaults: {
     type: 'seller',
     status: 'active',
@@ -57,19 +58,19 @@ export const SellerVariant: VariantSpec<SellerForm> = {
           { value:'landlord', label:'Landlord' },
         ]},
       ],
-      schema: S0,
+      fieldNames: ['type']
     },
     {
       id:'property', title:'Property Details',
       fields:[
         { name:'owner_full_name', label:'Full Name', kind:'text', width:'1/2', placeholder:'Full Name' },
-        { name:'property_type', label:'Property type', kind:'select', width:'1/2', options: PROPERTY_TYPES as any },
+        { name:'property_type', label:'Property type', kind:'select', width:'1/2', options: PROPERTY_TYPES as unknown as Array<{value: string, label: string}> },
         { name:'address_line', label:'Address', kind:'text', width:'full', placeholder:'Enter Address' },
         { name:'city', label:'City', kind:'text', width:'1/3' },
         { name:'zip_code', label:'Zip Code', kind:'text', width:'1/3' },
-        { name:'state', label:'State', kind:'select', width:'1/3', options: STATES.map(s=>({value:s,label:s})) as any },
+        { name:'state', label:'State', kind:'select', width:'1/3', options: STATES.map(s=>({value:s,label:s})) as unknown as Array<{value: string, label: string}> },
       ],
-      schema: S1,
+      fieldNames: ['owner_full_name', 'property_type', 'address_line', 'city', 'zip_code', 'state']
     },
     {
       id:'listing', title:'Listing Details',
@@ -88,7 +89,7 @@ export const SellerVariant: VariantSpec<SellerForm> = {
         ] },
         { name:'lead_source_other', label:'', kind:'text', width:'1/2', placeholder:'If Other, type here' },
       ],
-      schema: S2,
+      fieldNames: ['list_price_cents', 'list_date', 'expiration_date', 'listing_agent_pct', 'broker_share_pct', 'fees', 'lead_source', 'lead_source_other']
     },
     {
       id:'status', title:'Status',
@@ -99,8 +100,8 @@ export const SellerVariant: VariantSpec<SellerForm> = {
           { value:'closed', label:'Closed' },
         ]},
       ],
-      schema: S3,
-    },
+      fieldNames: ['status']
+    }
   ],
   toPayload: (d) => d,
 };

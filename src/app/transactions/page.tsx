@@ -78,7 +78,7 @@ export default function TransactionsPage() {
       <AddTransactionModal
         isOpen={isOpen}
         onClose={close}
-        onSave={(data: any) => {
+        onSave={(data: { type: 'buyer' | 'seller' | 'tenant' | 'landlord' }) => {
           console.log('save later to Supabase', data);
         }}
       />

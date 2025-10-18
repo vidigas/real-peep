@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 export type Size = 'sm' | 'md' | 'lg';
 export type Variant = 'default' | 'bottom-border';
 
-export interface BaseInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface BaseInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   id?: string;
   label?: string;
   hint?: string;

@@ -19,7 +19,6 @@ export function CurrencyInput({
   locale = 'en-US',
   min,
   max,
-  step,
   leftIcon,
   ...rest
 }: Props) {

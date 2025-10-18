@@ -29,7 +29,7 @@ export interface Transaction {
   gci?: number;
   lead_source?: string;
   currency: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -55,7 +55,7 @@ export interface CreateTransactionData {
   gci?: number;
   lead_source?: string;
   currency?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 export interface UpdateTransactionData extends Partial<CreateTransactionData> {

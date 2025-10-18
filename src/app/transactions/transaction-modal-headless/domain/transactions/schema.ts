@@ -61,8 +61,8 @@ export type VariantSpec<FormT> = {
   rootSchema: z.ZodTypeAny;
   defaults: Partial<FormT>;
   steps: StepSpec<FormT>[];
-  toPayload: (data: FormT) => any;
-  fromPayload?: (payload: any) => Partial<FormT>;
+  toPayload: (data: FormT) => Record<string, unknown>;
+  fromPayload?: (payload: Record<string, unknown>) => Partial<FormT>;
 };
 
 /** ---------- Common option lists ---------- */

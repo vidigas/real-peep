@@ -21,20 +21,11 @@ export {
 } from './ButtonGroup';
 
 // Input Components
-export { 
-  Input, 
-  EmailInput, 
-  PhoneInput, 
-  CurrencyInput, 
-  CardInput, 
-  InputSmall, 
-  InputLarge,
-  BottomBorderInput,
-  StepInput,
-  ActiveStepInput,
-  ValidStepInput,
-  ErrorStepInput
-} from './Input';
+export { Input } from './Input';
+export { EmailInput } from './EmailInput';
+export { PhoneInput } from './PhoneInput';
+export { CurrencyInput } from './CurrencyInput';
+export { CardInput } from './CardInput';
 export { 
   Select, 
   SelectWithAvatars, 
@@ -46,24 +37,13 @@ export {
 // Layout Components
 export { 
   Modal, 
-  SmallModal, 
-  LargeModal, 
-  ExtraLargeModal, 
-  FullModal, 
-  NonDismissibleModal,
-  ModalFooter,
-  ModalBody
+  ModalHeader,
+  ModalBody,
+  ModalFooter
 } from './Modal';
-export { 
-  Stepper, 
-  StepperWithCheckmarks, 
-  StepperWithDots, 
-  StepperWithNumbers,
-  HorizontalStepper,
-  VerticalStepper,
-  StepperSmall,
-  StepperLarge
-} from './Stepper';
+import Stepper from './Stepper';
+export { Stepper };
+export { type Step, type StepStatus } from './Stepper';
 
 // Button Components
 export { 

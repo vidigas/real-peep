@@ -4,7 +4,6 @@ import { Modal, ModalBody, ModalFooter } from '@/components/Modal';
 import Stepper, { type Step } from '@/components/Stepper';
 import { RadioGroup, RadioGroupItem } from '@/components/RadioGroup';
 import { Button } from '@/components/Button';
-import { cn } from '@/lib/utils';
 
 type TransactionType = 'buyer' | 'seller' | 'tenant' | 'landlord';
 

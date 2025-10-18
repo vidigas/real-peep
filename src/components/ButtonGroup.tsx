@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { cn } from '../lib/utils';
-import { Button, ButtonProps } from './Button';
+import { ButtonProps } from './Button';
 
 interface ButtonGroupContextValue {
   value: string | number | undefined;
@@ -81,7 +81,7 @@ export function ButtonGroupItem({
     throw new Error('ButtonGroupItem must be used within a ButtonGroup');
   }
 
-  const { value: selectedValue, onChange, disabled, size, variant } = context;
+  const { value: selectedValue, onChange, disabled, variant } = context;
   const isSelected = selectedValue === value;
   const isDisabled = disabled || (props as { disabled?: boolean }).disabled;
 
