@@ -1,49 +1,51 @@
-export default function TopBar() {
-  return (
-    <header className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center space-x-4">
-          <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-            <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-              <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
-            </div>
-          </div>
-          
-          {/* Search Bar */}
-          <div className="relative">
-            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search for transactions, clients, finances."
-              className="pl-10 pr-4 py-2 w-80 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-        </div>
+'use client';
 
-        {/* Right Side Actions */}
-        <div className="flex items-center space-x-4">
-          <button className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            <span>Transaction</span>
-          </button>
-          
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 00-15 0v5h5l-5 5-5-5h5v-5a7.5 7.5 0 0115 0v5z" />
-            </svg>
-          </button>
-          
-          <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </button>
-        </div>
+import React from 'react';
+import { useNewTransactionModal } from '@/providers'; // <- from /src/providers/new-transaction
+
+export default function TopBar() {
+  const { open } = useNewTransactionModal();
+
+  return (
+    <header className="h-20 border-b border-gray-200 bg-white flex items-center px-6">
+      {/* Search (400 x 41) */}
+      <div className="relative w-[400px]">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          {/* magnifier */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.7" />
+            <path d="M20 20L17 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+        </span>
+        <input
+          placeholder="Search for transactions, clients, finances"
+          className="h-[41px] w-[400px] rounded-xl pl-10 pr-3 text-body-md text-gray-600 placeholder-gray-300 border border-gray-200 outline-none focus:border-gray-300 bg-white"
+        />
+      </div>
+
+      <div className="ml-auto flex items-center gap-4">
+        {/* + Transaction */}
+        <button
+          type="button"
+          onClick={open}
+          className="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-primary-500 text-white text-body-md hover:bg-primary-600 active:bg-primary-700"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          Transaction
+        </button>
+
+        {/* Bell */}
+        <button
+          className="h-10 w-10 grid place-items-center rounded-lg text-gray-500 hover:bg-gray-50"
+          aria-label="Notifications"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M6 9a6 6 0 1112 0v5l1.5 2H4.5L6 14V9z" stroke="currentColor" strokeWidth="1.7" />
+            <path d="M9.5 18a2.5 2.5 0 005 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+        </button>
       </div>
     </header>
   );

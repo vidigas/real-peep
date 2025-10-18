@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useId, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../lib/utils';
 
 interface ModalProps {
@@ -13,7 +14,21 @@ interface ModalProps {
   className?: string;
   overlayClassName?: string;
   contentClassName?: string;
+  /** Focus this element when modal opens */
+  initialFocusRef?: React.RefObject<HTMLElement>;
+  /** Optional name/id to title element for aria-labelledby */
+  titleId?: string;
+  /** Optional callback to describe why it closed */
+  onCloseRequest?: (reason: 'overlay' | 'esc' | 'programmatic') => void;
 }
+
+const sizeClasses: Record<NonNullable<ModalProps['size']>, string> = {
+  sm: 'max-w-sm',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
+  full: 'max-w-[90vw] h-[90vh]',
+};
 
 export function Modal({
   isOpen,
@@ -27,145 +42,134 @@ export function Modal({
   className,
   overlayClassName,
   contentClassName,
+  initialFocusRef,
+  titleId,
+  onCloseRequest,
 }: ModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
+  const autoId = useId();
+  const labelId = title ? (titleId ?? `modal-${autoId}-title`) : undefined;
+  const contentRef = useRef<HTMLDivElement>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
 
-  // Size classes
-  const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    full: 'max-w-full mx-spacing-md',
-  };
-
-  // Handle escape key
+  // Prevent body scroll when open
   useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (closeOnEscape && event.key === 'Escape') {
-        onClose();
-      }
-    };
+    if (!isOpen) return;
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = overflow; };
+  }, [isOpen]);
 
+  // Focus management
+  useEffect(() => {
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden';
+      lastFocusedRef.current = document.activeElement as HTMLElement;
+      const toFocus = initialFocusRef?.current || contentRef.current;
+      toFocus?.focus();
+    } else {
+      lastFocusedRef.current?.focus?.();
     }
+  }, [isOpen, initialFocusRef]);
 
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, closeOnEscape, onClose]);
-
-  // Handle overlay click
-  const handleOverlayClick = (event: React.MouseEvent) => {
-    if (closeOnOverlayClick && event.target === event.currentTarget) {
+  // ESC to close
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (!isOpen) return;
+    if (e.key === 'Escape' && closeOnEscape) {
+      onCloseRequest?.('esc');
       onClose();
     }
-  };
+  }, [isOpen, closeOnEscape, onClose, onCloseRequest]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   if (!isOpen) return null;
 
-  return (
+  const overlay = (
     <div
       className={cn(
         'fixed inset-0 z-50 flex items-center justify-center',
-        'bg-black bg-opacity-50 backdrop-blur-sm',
-        'transition-opacity duration-300',
         overlayClassName
       )}
-      onClick={handleOverlayClick}
+      onClick={() => {
+        if (!closeOnOverlayClick) return;
+        onCloseRequest?.('overlay');
+        onClose();
+      }}
     >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+
+      {/* Content */}
       <div
-        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelId}
+        tabIndex={-1}
+        ref={contentRef}
         className={cn(
-          'relative bg-white rounded-lg shadow-xl',
-          'transform transition-all duration-300',
-          'w-full mx-spacing-md',
+          'relative z-10 w-full mx-4 rounded-2xl bg-white shadow-xl outline-none',
           sizeClasses[size],
+          contentClassName,
           className
         )}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         {(title || showCloseButton) && (
           <div className="flex items-center justify-between p-spacing-lg border-b border-gray-200">
             {title && (
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 id={labelId} className="text-xl font-semibold text-gray-900">
                 {title}
               </h2>
             )}
             {showCloseButton && (
               <button
-                onClick={onClose}
-                className={cn(
-                  'p-spacing-xs rounded-md',
-                  'text-gray-400 hover:text-gray-600',
-                  'hover:bg-gray-100 transition-colors duration-200',
-                  'focus:outline-none focus:ring-2 focus:ring-primary-500'
-                )}
+                type="button"
+                onClick={() => { onCloseRequest?.('programmatic'); onClose(); }}
                 aria-label="Close modal"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 8.586l4.95-4.95a1 1 0 111.414 1.414L11.414 10l4.95 4.95a1 1 0 01-1.414 1.414L10 11.414l-4.95 4.95a1 1 0 01-1.414-1.414L8.586 10l-4.95-4.95A1 1 0 115.05 3.636L10 8.586z" clipRule="evenodd" />
                 </svg>
               </button>
             )}
           </div>
         )}
 
-        {/* Content */}
-        <div className={cn('p-spacing-lg', contentClassName)}>
+        <div className="p-spacing-lg">
           {children}
         </div>
       </div>
     </div>
   );
+
+  return createPortal(overlay, document.body);
 }
 
-// Convenience components for different sizes
-export function SmallModal(props: Omit<ModalProps, 'size'>) {
-  return <Modal size="sm" {...props} />;
+// Sub-components to preserve API
+interface ModalHeaderProps {
+  children?: React.ReactNode;
+  title?: string;
+  titleId?: string;
+  className?: string;
 }
-
-export function LargeModal(props: Omit<ModalProps, 'size'>) {
-  return <Modal size="lg" {...props} />;
-}
-
-export function ExtraLargeModal(props: Omit<ModalProps, 'size'>) {
-  return <Modal size="xl" {...props} />;
-}
-
-export function FullModal(props: Omit<ModalProps, 'size'>) {
-  return <Modal size="full" {...props} />;
-}
-
-// Modal with no close button
-export function NonDismissibleModal(props: Omit<ModalProps, 'showCloseButton' | 'closeOnOverlayClick' | 'closeOnEscape'>) {
+export function ModalHeader({ children, title, titleId, className }: ModalHeaderProps) {
   return (
-    <Modal
-      showCloseButton={false}
-      closeOnOverlayClick={false}
-      closeOnEscape={false}
-      {...props}
-    />
+    <div className={cn('flex items-center justify-between p-spacing-lg border-b border-gray-200', className)}>
+      {title ? <h2 id={titleId} className="text-xl font-semibold text-gray-900">{title}</h2> : children}
+    </div>
   );
 }
 
-// Modal footer component for consistent button placement
 interface ModalFooterProps {
   children: React.ReactNode;
   className?: string;
 }
-
 export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
-    <div className={cn(
-      'flex items-center justify-between pt-spacing-lg border-t border-gray-200 mt-spacing-lg',
-      className
-    )}>
+    <div className={cn('flex items-center justify-end gap-3 p-spacing-lg border-t border-gray-200', className)}>
       {children}
     </div>
   );
@@ -176,11 +180,6 @@ interface ModalBodyProps {
   children: React.ReactNode;
   className?: string;
 }
-
 export function ModalBody({ children, className }: ModalBodyProps) {
-  return (
-    <div className={cn('space-y-spacing-md', className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn('space-y-spacing-md', className)}>{children}</div>;
 }

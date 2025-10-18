@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { cn } from '../lib/utils';
 
 interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
@@ -8,6 +8,7 @@ interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>
   variant?: 'default' | 'card';
   className?: string;
   labelClassName?: string;
+  indeterminate?: boolean;
 }
 
 export function Checkbox({
@@ -76,7 +77,7 @@ export function Checkbox({
 
   const checkboxElement = (
     <div className="relative">
-      <input
+      <input ref={inputRef}
         type="checkbox"
         className="sr-only"
         checked={isChecked}

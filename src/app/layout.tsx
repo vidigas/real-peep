@@ -1,26 +1,38 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import SideNav from '../components/SideNav';
-import TopBar from '../components/TopBar';
+import type { Metadata } from "next";
+import "./globals.css";
+import SideNav from "@/components/SideNav";
+import TopBar from "@/components/TopBar";
+import { Inter } from "next/font/google";
+import { NewTransactionProvider } from "@/providers/newTransaction";
 
 export const metadata: Metadata = {
-  title: 'RealPeep — Transactions',
-  description: 'POC: Add Transaction modal with Supabase',
+  title: "RealPeep",
+  description: "Transactions",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-white text-gray-900">
-        <div className="flex min-h-screen">
-          <SideNav />
-          <div className="flex-1">
-            <TopBar />
-            <main className="mx-auto max-w-[var(--container-w)] px-6 py-8">
-              {children}
-            </main>
+    <html lang="en" className={`${inter.variable} h-full font-sans`}>
+      <body className="h-full text-body-text antialiased">
+        <NewTransactionProvider>
+          <div className="min-h-screen flex">
+            {/* Left rail */}
+            <SideNav />
+
+            {/* Main column */}
+            <div className="flex-1 flex flex-col">
+              <TopBar />
+              {/* Canvas background is Figma exact #F7F8FA */}
+              <main className="flex-1 bg-[#F7F8FA]">{children}</main>
+            </div>
           </div>
-        </div>
+        </NewTransactionProvider>
       </body>
     </html>
   );

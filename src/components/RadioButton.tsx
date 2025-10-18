@@ -204,17 +204,17 @@ export function RadioButton({
 
 // Convenience components
 export function RadioCard({ children, ...props }: RadioButtonProps) {
-  return <RadioButton variant="card" {...props}>{children}</RadioCard>;
+  return <RadioButton variant="card" {...props}>{children}</RadioButton>;
 }
 
 export function RadioCompact({ children, ...props }: RadioButtonProps) {
-  return <RadioButton variant="compact" {...props}>{children}</RadioCompact>;
+  return <RadioButton variant="compact" {...props}>{children}</RadioButton>;
 }
 
 export function RadioSmall({ children, ...props }: RadioButtonProps) {
-  return <RadioButton size="sm" {...props}>{children}</RadioSmall>;
+  return <RadioButton size="sm" {...props}>{children}</RadioButton>;
 }
 
 export function RadioLarge({ children, ...props }: RadioButtonProps) {
-  return <RadioButton size="lg" {...props}>{children}</RadioLarge>;
+  return <RadioButton size="lg" {...props}>{children}</RadioButton>;
 }

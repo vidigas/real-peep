@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import { cn } from '../lib/utils';
 
 interface SelectOption {
@@ -12,6 +12,7 @@ interface SelectProps {
   options: SelectOption[];
   value?: string;
   onChange: (value: string) => void;
+  name?: string;
   placeholder?: string;
   label?: string;
   hint?: string;
@@ -40,6 +41,11 @@ export function Select({
   labelClassName,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const autoId = useId();
+  const listboxId = `listbox-${autoId}`;
+  const comboboxId = `combobox-${autoId}`;
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [searchTerm, setSearchTerm] = useState('');
   const selectRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -186,7 +192,9 @@ export function Select({
           </svg>
         </button>
 
-        {/* Dropdown */}
+        {/* Form compatibility */}
+      {name && <input type="hidden" name={name} value={value ?? ''} />}
+      {/* Dropdown */}
         {isOpen && (
           <div className="absolute z-50 w-full mt-spacing-xs bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-hidden">
             {/* Search Input */}

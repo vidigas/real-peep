@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useId } from 'react';
 import { cn } from '../lib/utils';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -31,6 +31,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     stepStatus = 'default',
     ...props
   }, ref) => {
+  const autoId = useId();
+
     const hasError = !!error;
     const isDisabled = disabled;
 
@@ -175,7 +177,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             <div className={stepIndicatorClasses} />
           )}
           
-          <input
+          <input id={id ?? `input-${autoId}`}
             ref={ref}
             className={cn(
               'w-full border border-solid',
@@ -198,7 +200,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             )}
             disabled={isDisabled}
             placeholder={props.placeholder || variantConfig.placeholder}
-            {...props}
+            aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props}
           />
           
           {/* Left Icon */}
@@ -244,48 +246,48 @@ Input.displayName = 'Input';
 
 // Convenience components for specific variants
 export function EmailInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="email" {...props} />;
+  return <Input variant="email" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 export function PhoneInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="phone" {...props} />;
+  return <Input variant="phone" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 export function CurrencyInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="currency" {...props} />;
+  return <Input variant="currency" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 export function CardInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="card" {...props} />;
+  return <Input variant="card" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 // Size variants
 export function InputSmall(props: Omit<InputProps, 'size'>) {
-  return <Input size="sm" {...props} />;
+  return <Input size="sm" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 export function InputLarge(props: Omit<InputProps, 'size'>) {
-  return <Input size="lg" {...props} />;
+  return <Input size="lg" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 // Bottom border variant
 export function BottomBorderInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="bottom-border" {...props} />;
+  return <Input variant="bottom-border" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 // Step indicator variants
 export function StepInput(props: Omit<InputProps, 'showStepIndicator'>) {
-  return <Input showStepIndicator {...props} />;
+  return <Input showStepIndicator aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 export function ActiveStepInput(props: Omit<InputProps, 'showStepIndicator' | 'stepStatus'>) {
-  return <Input showStepIndicator stepStatus="active" {...props} />;
+  return <Input showStepIndicator stepStatus="active" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 export function ValidStepInput(props: Omit<InputProps, 'showStepIndicator' | 'stepStatus'>) {
-  return <Input showStepIndicator stepStatus="valid" {...props} />;
+  return <Input showStepIndicator stepStatus="valid" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
 
 export function ErrorStepInput(props: Omit<InputProps, 'showStepIndicator' | 'stepStatus'>) {
-  return <Input showStepIndicator stepStatus="error" {...props} />;
+  return <Input showStepIndicator stepStatus="error" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
 }
