@@ -35,12 +35,12 @@ export function Display({
   as: Component = 'h1' 
 }: DisplayProps) {
   const sizeClasses = {
-    '2xl': 'text-display-2xl',
-    'xl': 'text-display-xl',
-    'lg': 'text-display-lg',
-    'md': 'text-display-md',
-    'sm': 'text-display-sm',
-    'xs': 'text-display-xs',
+    '2xl': 'text-6xl leading-[90px] tracking-[-0.02em]',
+    'xl': 'text-5xl leading-[72px] tracking-[-0.02em]',
+    'lg': 'text-4xl leading-[60px] tracking-[-0.02em]',
+    'md': 'text-3xl leading-[44px] tracking-[-0.02em]',
+    'sm': 'text-2xl leading-[38px] tracking-[-0.02em]',
+    'xs': 'text-xl leading-[32px] tracking-[-0.02em]',
   };
 
   const weightClasses = {
@@ -51,11 +51,11 @@ export function Display({
   };
 
   const colorClasses = {
-    heading: 'text-heading-text',
-    body: 'text-body-text',
-    muted: 'text-muted-text',
-    placeholder: 'text-placeholder-text',
-    disabled: 'text-disabled-text',
+    heading: 'text-gray-900',
+    body: 'text-gray-800',
+    muted: 'text-gray-400',
+    placeholder: 'text-gray-300',
+    disabled: 'text-gray-300',
   };
 
   return (
@@ -83,11 +83,11 @@ export function Text({
   as: Component = 'p' 
 }: TextProps) {
   const sizeClasses = {
-    'xl': 'text-text-xl',
-    'lg': 'text-text-lg',
-    'md': 'text-text-md',
-    'sm': 'text-text-sm',
-    'xs': 'text-text-xs',
+    'xl': 'text-xl leading-[30px]',
+    'lg': 'text-lg leading-[28px]',
+    'md': 'text-base leading-[24px]',
+    'sm': 'text-sm leading-[20px]',
+    'xs': 'text-xs leading-[18px]',
   };
 
   const weightClasses = {
@@ -98,11 +98,11 @@ export function Text({
   };
 
   const colorClasses = {
-    heading: 'text-heading-text',
-    body: 'text-body-text',
-    muted: 'text-muted-text',
-    placeholder: 'text-placeholder-text',
-    disabled: 'text-disabled-text',
+    heading: 'text-gray-900',
+    body: 'text-gray-800',
+    muted: 'text-gray-400',
+    placeholder: 'text-gray-300',
+    disabled: 'text-gray-300',
   };
 
   return (

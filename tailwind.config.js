@@ -21,12 +21,12 @@ module.exports = {
         'display-sm': ['30px', { lineHeight: '38px', letterSpacing: '-0.02em' }],
         'display-xs': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em' }],
         
-        // Text sizes (Inter)
-        'text-xl': ['20px', { lineHeight: '30px' }],
-        'text-lg': ['18px', { lineHeight: '28px' }],
-        'text-md': ['16px', { lineHeight: '24px' }],
-        'text-sm': ['14px', { lineHeight: '20px' }],
-        'text-xs': ['12px', { lineHeight: '18px' }],
+        // Text sizes (Inter) - using different naming to avoid conflicts
+        'body-xl': ['20px', { lineHeight: '30px' }],
+        'body-lg': ['18px', { lineHeight: '28px' }],
+        'body-md': ['16px', { lineHeight: '24px' }],
+        'body-sm': ['14px', { lineHeight: '20px' }],
+        'body-xs': ['12px', { lineHeight: '18px' }],
       },
       fontWeight: {
         normal: '400',
