@@ -42,13 +42,13 @@ export default function AddTransactionModal({ isOpen, onClose, onSave }: Props) 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add Transaction"
+      title="Transaction Form"
       size="xl"
       contentClassName="p-0"
     >
       {/* Stepper rail */}
       <div className="px-6 pt-6">
-        <Stepper steps={steps} current={current} size="md" className="w-full" showHalo />
+        <Stepper steps={steps} current={current} className="w-full" />
       </div>
 
       {/* Step header */}
