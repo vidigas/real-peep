@@ -9,6 +9,30 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['var(--font-inter)', 'Inter', 'sans-serif'],
+        display: ['Inter', 'sans-serif'], // For display sizes
+        body: ['Inter', 'sans-serif'], // For text sizes
+      },
+      fontSize: {
+        // Display sizes (Satoshi equivalent)
+        'display-2xl': ['72px', { lineHeight: '90px', letterSpacing: '-0.02em' }],
+        'display-xl': ['60px', { lineHeight: '72px', letterSpacing: '-0.02em' }],
+        'display-lg': ['48px', { lineHeight: '60px', letterSpacing: '-0.02em' }],
+        'display-md': ['36px', { lineHeight: '44px', letterSpacing: '-0.02em' }],
+        'display-sm': ['30px', { lineHeight: '38px', letterSpacing: '-0.02em' }],
+        'display-xs': ['24px', { lineHeight: '32px', letterSpacing: '-0.02em' }],
+        
+        // Text sizes (Inter)
+        'text-xl': ['20px', { lineHeight: '30px' }],
+        'text-lg': ['18px', { lineHeight: '28px' }],
+        'text-md': ['16px', { lineHeight: '24px' }],
+        'text-sm': ['14px', { lineHeight: '20px' }],
+        'text-xs': ['12px', { lineHeight: '18px' }],
+      },
+      fontWeight: {
+        normal: '400',
+        medium: '500',
+        semibold: '600',
+        bold: '700',
       },
       colors: {
         // Primary Colors (Green)
@@ -133,6 +157,13 @@ module.exports = {
           text: '#227AC6',
           bg: '#EEF5FC',
         },
+        
+        // Typography Colors
+        'heading-text': '#111827', // Gray 900
+        'body-text': '#1f2937', // Gray 800
+        'muted-text': '#9ca3af', // Gray 400
+        'placeholder-text': '#d1d5db', // Gray 300
+        'disabled-text': '#d1d5db', // Gray 300
         
         // Special Colors
         white: '#FFFFFF',

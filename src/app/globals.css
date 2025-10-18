@@ -30,6 +30,13 @@
   --info-text: #227AC6;
   --info-bg: #EEF5FC;
   
+  /* Typography Colors */
+  --heading-text: #111827;
+  --body-text: #1f2937;
+  --muted-text: #9ca3af;
+  --placeholder-text: #d1d5db;
+  --disabled-text: #d1d5db;
+  
   /* Special Colors */
   --text-body: #A5ACC2;
   --text-supporting: #6E6E6E;
