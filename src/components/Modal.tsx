@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useId, useCallback } from 'react';
+'use client';
+import React, { useEffect, useRef, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../lib/utils';
 
@@ -14,20 +15,21 @@ interface ModalProps {
   className?: string;
   overlayClassName?: string;
   contentClassName?: string;
-  /** Focus this element when modal opens */
   initialFocusRef?: React.RefObject<HTMLElement>;
-  /** Optional name/id to title element for aria-labelledby */
   titleId?: string;
-  /** Optional callback to describe why it closed */
+  ariaDescribedBy?: string;
   onCloseRequest?: (reason: 'overlay' | 'esc' | 'programmatic') => void;
 }
 
 const sizeClasses: Record<NonNullable<ModalProps['size']>, string> = {
-  sm: 'max-w-sm',
-  md: 'max-w-lg',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
-  full: 'max-w-[90vw] h-[90vh]',
+  sm:  'w-[min(640px,calc(100vw-32px))] max-h-[min(80vh,720px)]',
+  md:  'w-[min(768px,calc(100vw-32px))] max-h-[min(85vh,800px)]',
+  lg:  'w-[min(864px,calc(100vw-32px))] max-h-[min(88vh,880px)]',
+
+  // Figma spec – Fixed 848×607 with small-screen clamp
+  xl:  'w-[min(848px,calc(100vw-32px))] h-[min(607px,calc(100vh-32px))]',
+
+  full:'w-[min(90vw,calc(100vw-32px))] h-[min(90vh,calc(100vh-32px))]',
 };
 
 export function Modal({
@@ -44,6 +46,7 @@ export function Modal({
   contentClassName,
   initialFocusRef,
   titleId,
+  ariaDescribedBy,
   onCloseRequest,
 }: ModalProps) {
   const autoId = useId();
@@ -51,73 +54,93 @@ export function Modal({
   const contentRef = useRef<HTMLDivElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
 
-  // Prevent body scroll when open
+  // Body scroll lock (with scrollbar compensation)
   useEffect(() => {
     if (!isOpen) return;
-    const { overflow } = document.body.style;
+    const prevOverflow = document.body.style.overflow;
+    const prevPadding = document.body.style.paddingRight;
+    const scrollbarW = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = overflow; };
+    if (scrollbarW > 0) document.body.style.paddingRight = `${scrollbarW}px`;
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPadding;
+    };
   }, [isOpen]);
 
-  // Focus management
+  // Focus management + minimal trap
   useEffect(() => {
-    if (isOpen) {
-      lastFocusedRef.current = document.activeElement as HTMLElement;
-      const toFocus = initialFocusRef?.current || contentRef.current;
-      toFocus?.focus();
-    } else {
-      lastFocusedRef.current?.focus?.();
-    }
-  }, [isOpen, initialFocusRef]);
-
-  // ESC to close
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!isOpen) return;
-    if (e.key === 'Escape' && closeOnEscape) {
-      onCloseRequest?.('esc');
-      onClose();
-    }
-  }, [isOpen, closeOnEscape, onClose, onCloseRequest]);
 
-  useEffect(() => {
+    lastFocusedRef.current = document.activeElement as HTMLElement;
+    (initialFocusRef?.current || contentRef.current)?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && closeOnEscape) {
+        onCloseRequest?.('esc');
+        onClose();
+      }
+      if (e.key === 'Tab' && contentRef.current) {
+        const focusables = contentRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault(); last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault(); first.focus();
+        }
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+  }, [isOpen, initialFocusRef, closeOnEscape, onClose, onCloseRequest]);
+
+  // Restore focus on close
+  useEffect(() => {
+    if (!isOpen) lastFocusedRef.current?.focus?.();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   const overlay = (
     <div
       className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center',
+        'fixed inset-0 z-50 flex items-center justify-center p-4',
         overlayClassName
       )}
-      onClick={() => {
+      onClick={(e) => {
         if (!closeOnOverlayClick) return;
+        if (e.target !== e.currentTarget) return; // only close on true backdrop click
         onCloseRequest?.('overlay');
         onClose();
       }}
     >
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
 
-      {/* Content */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelId}
+        aria-describedby={ariaDescribedBy}
+        aria-label={!labelId && title ? title : undefined}
         tabIndex={-1}
         ref={contentRef}
         className={cn(
-          'relative z-10 w-full mx-4 rounded-2xl bg-white shadow-xl outline-none',
+          'relative z-10 w-full bg-white shadow-xl outline-none',
+          'rounded-[20px]',
+          'overflow-hidden flex flex-col', // footer pinned, body scrolls
+          'mx-auto',
           sizeClasses[size],
           contentClassName,
           className
         )}
-        onClick={(e) => e.stopPropagation()}
       >
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-spacing-lg border-b border-gray-200">
+          <div className="flex items-center justify-between px-6 py-4">
             {title && (
               <h2 id={labelId} className="text-xl font-semibold text-gray-900">
                 {title}
@@ -128,7 +151,7 @@ export function Modal({
                 type="button"
                 onClick={() => { onCloseRequest?.('programmatic'); onClose(); }}
                 aria-label="Close modal"
-                className="inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 8.586l4.95-4.95a1 1 0 111.414 1.414L11.414 10l4.95 4.95a1 1 0 01-1.414 1.414L10 11.414l-4.95 4.95a1 1 0 01-1.414-1.414L8.586 10l-4.95-4.95A1 1 0 115.05 3.636L10 8.586z" clipRule="evenodd" />
@@ -138,9 +161,8 @@ export function Modal({
           </div>
         )}
 
-        <div className="p-spacing-lg">
-          {children}
-        </div>
+        {/* children should usually be <ModalBody/> + <ModalFooter/> */}
+        {children}
       </div>
     </div>
   );
@@ -148,38 +170,29 @@ export function Modal({
   return createPortal(overlay, document.body);
 }
 
-// Sub-components to preserve API
-interface ModalHeaderProps {
-  children?: React.ReactNode;
-  title?: string;
-  titleId?: string;
-  className?: string;
-}
-export function ModalHeader({ children, title, titleId, className }: ModalHeaderProps) {
+/* Slots */
+export function ModalHeader({ children, title, titleId, className }: {
+  children?: React.ReactNode; title?: string; titleId?: string; className?: string;
+}) {
   return (
-    <div className={cn('flex items-center justify-between p-spacing-lg border-b border-gray-200', className)}>
+    <div className={cn('flex items-center justify-between px-6 py-4', className)}>
       {title ? <h2 id={titleId} className="text-xl font-semibold text-gray-900">{title}</h2> : children}
     </div>
   );
 }
 
-interface ModalFooterProps {
-  children: React.ReactNode;
-  className?: string;
-}
-export function ModalFooter({ children, className }: ModalFooterProps) {
+export function ModalBody({ children, className }: { children: React.ReactNode; className?: string; }) {
   return (
-    <div className={cn('flex items-center justify-end gap-3 p-spacing-lg border-t border-gray-200', className)}>
+    <div className={cn('flex-1 min-h-0 overflow-auto px-6 py-6', className)}>
       {children}
     </div>
   );
 }
 
-// Modal body component for consistent content spacing
-interface ModalBodyProps {
-  children: React.ReactNode;
-  className?: string;
-}
-export function ModalBody({ children, className }: ModalBodyProps) {
-  return <div className={cn('space-y-spacing-md', className)}>{children}</div>;
+export function ModalFooter({ children, className }: { children: React.ReactNode; className?: string; }) {
+  return (
+    <div className={cn('px-6 py-6 border-t border-gray-200 flex items-center justify-between', className)}>
+      {children}
+    </div>
+  );
 }

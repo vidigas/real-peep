@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { useNewTransactionModal } from '@/providers'; // from /src/providers/new-transaction
-import { Modal, ModalBody, ModalFooter } from '@/components/Modal';
-import { Button } from '@/components/Button';
+import { useNewTransactionModal } from '@/providers';
+
+import AddTransactionModal from './transaction-modal-headless/components/transactions/AddTransactionModal';
 
 const tabs = ['All', 'Active', 'Pending', 'Closed'] as const;
 type Tab = typeof tabs[number];
@@ -14,16 +14,14 @@ export default function TransactionsPage() {
 
   return (
     <div className="min-h-full">
-      {/* Page header block */}
-      <section className="px-6 py-8 bg-[#F7F8FA]">
-        {/* Title (24/32, 700, +0.24 letter spacing) */}
+      {/* Page header */}
+      <section className="px-6 pb-8 pt-8 bg-[#F7F8FA]">
         <h1 className="text-[24px] leading-[32px] font-bold tracking-[0.24px] text-[#1A1A1A]">
           Transactions
         </h1>
 
-        {/* Tabs: mt-5 (20px), height 36, gap 12, underline 2px */}
-        <div className="mt-5">
-          <div className="flex items-center gap-3 h-9">
+        <div className="mt-[21px] border-b border-gray-200">
+          <div className="flex items-center gap-2 h-9">
             {tabs.map((t) => {
               const isActive = t === active;
               return (
@@ -37,7 +35,7 @@ export default function TransactionsPage() {
                 >
                   {t}
                   {isActive && (
-                    <span className="absolute left-0 -bottom-1 h-[2px] w-full bg-primary-700 rounded-full" />
+                    <span className="absolute left-0 bottom-[-1px] h-[2px] w-full bg-primary-700 rounded-full" />
                   )}
                 </button>
               );
@@ -46,16 +44,13 @@ export default function TransactionsPage() {
         </div>
       </section>
 
-      {/* Content container - 24px left/right from rail */}
-      <main className="px-6 py-8">
-        {/* Card */}
+      {/* Content (unchanged) */}
+      <main className="px-6 pt-0 pb-8">
         <section className="rounded-2xl border border-gray-200 bg-white">
-          {/* Card header has 32px vertical padding */}
           <header className="px-6 py-8">
             <h2 className="text-[24px] leading-[32px] font-semibold text-[#1A1A1A]">Listings</h2>
           </header>
 
-          {/* Column headers */}
           <div className="grid grid-cols-4 gap-6 border-t border-gray-200 px-6 py-4 text-gray-500 text-[12px] tracking-[0.6px]">
             <div>STATUS</div>
             <div>LISTING</div>
@@ -63,9 +58,8 @@ export default function TransactionsPage() {
             <div>LEAD SOURCE</div>
           </div>
 
-          {/* Empty state */}
           <div className="px-6 pb-8">
-            <div className="h-[240px] rounded-xl border border-gray-200 grid place-items-center text-center">
+            <div className="h-[200px] rounded-xl border border-gray-200 grid place-items-center text-center">
               <div>
                 <div className="mx-auto mb-4 grid h-10 w-10 place-items-center rounded-lg border-2 border-gray-300">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-gray-400 mx-auto" aria-hidden>
@@ -80,28 +74,14 @@ export default function TransactionsPage() {
         </section>
       </main>
 
-      {/* Create / Edit Transaction Modal */}
-      <Modal isOpen={isOpen} onClose={close} title="Add Transaction" size="xl">
-        <ModalBody>
-          {/* TODO: Replace with the real multi-step form */}
-          <div className="space-y-6">
-            <div className="flex gap-2">
-              <Button hierarchy="secondary-gray" size="sm">Buyer</Button>
-              <Button hierarchy="secondary-gray" size="sm">Seller</Button>
-            </div>
-            <div className="text-sm text-gray-600">
-              Transaction form goes here (name, budget/list price, dates, commission, lead source, status).
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button hierarchy="link-gray" onClick={close}>Back</Button>
-          <div className="flex items-center gap-2">
-            <Button hierarchy="secondary-gray">+ Checklist</Button>
-            <Button hierarchy="primary" onClick={close}>Save</Button>
-          </div>
-        </ModalFooter>
-      </Modal>
+      {/* Mount the NEW modal only */}
+      <AddTransactionModal
+        isOpen={isOpen}
+        onClose={close}
+        onSave={(data: any) => {
+          console.log('save later to Supabase', data);
+        }}
+      />
     </div>
   );
 }

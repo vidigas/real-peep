@@ -83,7 +83,7 @@ export function ButtonGroupItem({
 
   const { value: selectedValue, onChange, disabled, size, variant } = context;
   const isSelected = selectedValue === value;
-  const isDisabled = disabled || props.disabled;
+  const isDisabled = disabled || (props as { disabled?: boolean }).disabled;
 
   // Segmented button styling
   if (variant === 'segmented') {

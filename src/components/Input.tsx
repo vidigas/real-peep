@@ -1,293 +1,135 @@
+'use client';
 import React, { forwardRef, useId } from 'react';
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export type Size = 'sm' | 'md' | 'lg';
+export type Variant = 'default' | 'bottom-border';
+
+export interface BaseInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  id?: string;
   label?: string;
   hint?: string;
   error?: string;
+  size?: Size;
+  variant?: Variant;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
-  variant?: 'default' | 'email' | 'phone' | 'currency' | 'card' | 'bottom-border';
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
   labelClassName?: string;
+  containerClassName?: string;
   showStepIndicator?: boolean;
   stepStatus?: 'default' | 'active' | 'valid' | 'error';
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({
+export const Input = forwardRef<HTMLInputElement, BaseInputProps>((props, ref) => {
+  const {
+    id,
     label,
     hint,
     error,
+    size = 'md',
+    variant = 'default',
     leftIcon,
     rightIcon,
-    variant = 'default',
-    size = 'md',
     className,
     labelClassName,
+    containerClassName,
     disabled,
     showStepIndicator = false,
     stepStatus = 'default',
-    ...props
-  }, ref) => {
+    ...rest
+  } = props;
+
   const autoId = useId();
+  const inputId = id ?? autoId;
+  const hasError = !!error;
+  const isDisabled = !!disabled;
 
-    const hasError = !!error;
-    const isDisabled = disabled;
+  const sizeCls: Record<Size, string> = {
+    sm: 'h-8 text-sm px-3',
+    md: 'h-10 text-base px-3',
+    lg: 'h-12 text-lg px-4',
+  };
 
-    // Size classes
-    const sizeClasses = {
-      sm: 'h-8 px-spacing-sm text-sm',
-      md: 'h-10 px-spacing-md text-base',
-      lg: 'h-12 px-spacing-lg text-lg',
-    };
+  const variantCls =
+    variant === 'bottom-border'
+      ? 'border-0 border-b-2 rounded-none px-0'
+      : 'border rounded-lg';
 
-    const iconSizeClasses = {
-      sm: 'w-4 h-4',
-      md: 'w-5 h-5',
-      lg: 'w-6 h-6',
-    };
+  const stepIndicatorClasses = () => {
+    if (!showStepIndicator) return '';
+    const base = 'absolute left-0 top-0 w-0.5 h-full';
+    switch (stepStatus) {
+      case 'active': return base + ' bg-primary-500';
+      case 'valid': return base + ' bg-success-500';
+      case 'error': return base + ' bg-error-500';
+      default: return base + ' bg-gray-300';
+    }
+  };
 
-    const textSizeClasses = {
-      sm: 'text-sm',
-      md: 'text-base',
-      lg: 'text-lg',
-    };
+  const stateCls = () => {
+    if (isDisabled) return 'bg-gray-50 border-gray-200 text-gray-400';
+    if (hasError || stepStatus === 'error') return 'border-error-500 focus:ring-error-500';
+    if (stepStatus === 'active') return 'border-primary-500 focus:border-primary-500 focus:ring-primary-500';
+    if (stepStatus === 'valid') return 'border-success-500 focus:border-success-500 focus:ring-success-500';
+    return 'border-gray-300 focus:border-primary-500 focus:ring-primary-500';
+  };
 
-    // Step indicator styling
-    const getStepIndicatorClasses = () => {
-      if (!showStepIndicator) return {};
-      
-      const baseClasses = 'absolute left-0 top-0 w-0.5 h-full';
-      
-      switch (stepStatus) {
-        case 'active':
-          return `${baseClasses} bg-primary-500`;
-        case 'valid':
-          return `${baseClasses} bg-success-500`;
-        case 'error':
-          return `${baseClasses} bg-error-500`;
-        default:
-          return `${baseClasses} bg-gray-300`;
-      }
-    };
+  const describedBy =
+    [hint ? `${inputId}-hint` : '', error ? `${inputId}-error` : '']
+      .filter(Boolean).join(' ') || undefined;
 
-    // Variant-specific styling
-    const getVariantClasses = () => {
-      switch (variant) {
-        case 'email':
-          return {
-            leftIcon: (
-              <svg className={iconSizeClasses[size]} fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-              </svg>
-            ),
-            placeholder: 'olivia@untitledui.com',
-          };
-        case 'phone':
-          return {
-            leftIcon: (
-              <div className="flex items-center gap-spacing-xs">
-                <span className="text-sm font-medium">US</span>
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </div>
-            ),
-            placeholder: '+1 (555) 000-0000',
-          };
-        case 'currency':
-          return {
-            leftIcon: <span className="text-gray-500">$</span>,
-            rightIcon: (
-              <div className="flex items-center gap-spacing-xs">
-                <span className="text-sm font-medium">USD</span>
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </div>
-            ),
-            placeholder: '1,000.00',
-          };
-        case 'card':
-          return {
-            leftIcon: (
-              <div className="w-6 h-4 bg-gradient-to-r from-yellow-400 to-red-500 rounded-sm flex items-center justify-center">
-                <span className="text-white text-xs font-bold">MC</span>
-              </div>
-            ),
-            placeholder: 'Card number',
-          };
-        case 'bottom-border':
-          return {
-            inputClasses: 'border-0 border-b-2 border-solid rounded-none px-0',
-            containerClasses: 'relative',
-          };
-        default:
-          return {};
-      }
-    };
+  return (
+    <div className={cn('space-y-1', containerClassName)}>
+      {label && (
+        <label
+          htmlFor={inputId}
+          className={cn('block text-sm font-medium text-gray-900', labelClassName)}
+        >
+          {label}
+        </label>
+      )}
 
-    const variantConfig = getVariantClasses();
-    const effectiveLeftIcon = leftIcon || variantConfig.leftIcon;
-    const effectiveRightIcon = rightIcon || variantConfig.rightIcon;
-    const stepIndicatorClasses = getStepIndicatorClasses();
+      <div className="relative">
+        {showStepIndicator && <div className={stepIndicatorClasses()} />}
 
-    // Enhanced state colors based on step status
-    const getStateClasses = () => {
-      if (isDisabled) {
-        return 'bg-gray-50 border-gray-200 text-gray-400';
-      }
-      
-      if (hasError || stepStatus === 'error') {
-        return 'border-error-500 focus:ring-error-500';
-      }
-      
-      if (stepStatus === 'active') {
-        return 'border-primary-500 focus:border-primary-500 focus:ring-primary-500';
-      }
-      
-      if (stepStatus === 'valid') {
-        return 'border-success-500 focus:border-success-500 focus:ring-success-500';
-      }
-      
-      return 'border-gray-300 focus:border-primary-500 focus:ring-primary-500';
-    };
+        <input
+          id={inputId}
+          ref={ref}
+          disabled={isDisabled}
+          aria-invalid={hasError || stepStatus === 'error' || undefined}
+          aria-describedby={describedBy}
+          className={cn(
+            'w-full border border-solid transition-colors duration-200',
+            'focus:outline-none focus:ring-2 focus:ring-offset-2',
+            'disabled:cursor-not-allowed disabled:bg-gray-50',
+            sizeCls[size],
+            variantCls,
+            stateCls(),
+            leftIcon && 'pl-10',
+            rightIcon && 'pr-10',
+            className
+          )}
+          {...rest}
+        />
 
-    return (
-      <div className="space-y-spacing-xs">
-        {label && (
-          <label className={cn(
-            'block font-medium',
-            textSizeClasses[size],
-            stepStatus === 'active' ? 'text-primary-500' : 
-            stepStatus === 'valid' ? 'text-gray-900' :
-            stepStatus === 'error' ? 'text-error-500' : 'text-gray-900',
-            labelClassName
-          )}>
-            {label}
-          </label>
+        {leftIcon && (
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+            {leftIcon}
+          </span>
         )}
-        
-        <div className={cn('relative', variantConfig.containerClasses)}>
-          {/* Step Indicator */}
-          {showStepIndicator && (
-            <div className={stepIndicatorClasses} />
-          )}
-          
-          <input id={id ?? `input-${autoId}`}
-            ref={ref}
-            className={cn(
-              'w-full border border-solid',
-              'transition-colors duration-200',
-              'focus:outline-none focus:ring-2 focus:ring-offset-2',
-              'disabled:cursor-not-allowed disabled:bg-gray-50',
-              sizeClasses[size],
-              
-              // Variant-specific classes
-              variantConfig.inputClasses || 'rounded-lg',
-              
-              // States
-              getStateClasses(),
-              
-              // Icon padding
-              effectiveLeftIcon && 'pl-spacing-xl',
-              effectiveRightIcon && 'pr-spacing-xl',
-              
-              className
-            )}
-            disabled={isDisabled}
-            placeholder={props.placeholder || variantConfig.placeholder}
-            aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props}
-          />
-          
-          {/* Left Icon */}
-          {effectiveLeftIcon && (
-            <div className={cn(
-              'absolute left-spacing-md top-1/2 -translate-y-1/2',
-              'flex items-center justify-center',
-              'pointer-events-none',
-              isDisabled ? 'text-gray-400' : hasError ? 'text-error-500' : 'text-gray-500'
-            )}>
-              {effectiveLeftIcon}
-            </div>
-          )}
-          
-          {/* Right Icon */}
-          {effectiveRightIcon && (
-            <div className={cn(
-              'absolute right-spacing-md top-1/2 -translate-y-1/2',
-              'flex items-center justify-center',
-              'pointer-events-none',
-              isDisabled ? 'text-gray-400' : hasError ? 'text-error-500' : 'text-gray-500'
-            )}>
-              {effectiveRightIcon}
-            </div>
-          )}
-        </div>
-        
-        {/* Hint or Error Text */}
-        {(hint || error) && (
-          <p className={cn(
-            textSizeClasses[size],
-            hasError ? 'text-error-500' : 'text-gray-500'
-          )}>
-            {error || hint}
-          </p>
+        {rightIcon && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+            {rightIcon}
+          </span>
         )}
       </div>
-    );
-  }
-);
 
+      {error ? (
+        <p id={`${inputId}-error`} className="text-sm text-error-600">{error}</p>
+      ) : hint ? (
+        <p id={`${inputId}-hint`} className="text-sm text-gray-500">{hint}</p>
+      ) : null}
+    </div>
+  );
+});
 Input.displayName = 'Input';
-
-// Convenience components for specific variants
-export function EmailInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="email" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-export function PhoneInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="phone" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-export function CurrencyInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="currency" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-export function CardInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="card" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-// Size variants
-export function InputSmall(props: Omit<InputProps, 'size'>) {
-  return <Input size="sm" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-export function InputLarge(props: Omit<InputProps, 'size'>) {
-  return <Input size="lg" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-// Bottom border variant
-export function BottomBorderInput(props: Omit<InputProps, 'variant'>) {
-  return <Input variant="bottom-border" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-// Step indicator variants
-export function StepInput(props: Omit<InputProps, 'showStepIndicator'>) {
-  return <Input showStepIndicator aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-export function ActiveStepInput(props: Omit<InputProps, 'showStepIndicator' | 'stepStatus'>) {
-  return <Input showStepIndicator stepStatus="active" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-export function ValidStepInput(props: Omit<InputProps, 'showStepIndicator' | 'stepStatus'>) {
-  return <Input showStepIndicator stepStatus="valid" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
-
-export function ErrorStepInput(props: Omit<InputProps, 'showStepIndicator' | 'stepStatus'>) {
-  return <Input showStepIndicator stepStatus="error" aria-invalid={!!error} aria-describedby={[(hint ? `hint-${autoId}` : ''), (error ? `error-${autoId}` : '')].filter(Boolean).join(' ') || undefined} {...props} />;
-}
