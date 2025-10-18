@@ -178,12 +178,67 @@ module.exports = {
         'surface-dark-2': '#292929',
       },
       spacing: {
+        // Spacing Primitives from Figma (0.25rem = 4px base)
+        '0': '0px',      // 0rem
+        '0.5': '2px',    // 0.125rem
+        '1': '4px',      // 0.25rem
+        '1.5': '6px',    // 0.375rem
+        '2': '8px',      // 0.5rem
+        '3': '12px',     // 0.75rem
+        '4': '16px',     // 1rem
+        '5': '20px',     // 1.25rem
+        '6': '24px',     // 1.5rem
+        '8': '32px',     // 2rem
+        '10': '40px',    // 2.5rem
+        '12': '48px',    // 3rem
+        '16': '64px',    // 4rem
+        '20': '80px',    // 5rem
+        '24': '96px',    // 6rem
+        '32': '128px',   // 8rem
+        '40': '160px',   // 10rem
+        '48': '192px',   // 12rem
+        '56': '224px',   // 14rem
+        '64': '256px',   // 16rem
+        '80': '320px',   // 20rem
+        '96': '384px',   // 24rem
+        '120': '480px',  // 30rem
+        '140': '560px',  // 35rem
+        '160': '640px',  // 40rem
+        '180': '720px',  // 45rem
+        '192': '768px',  // 48rem
+        '256': '1024px', // 64rem
+        '320': '1280px', // 80rem
+        '360': '1440px', // 90rem
+        '400': '1600px', // 100rem
+        '480': '1920px', // 120rem
+        
+        // Legacy spacing (keeping for compatibility)
         '18': '4.5rem',
         '88': '22rem',
       },
       borderRadius: {
-        'xl': '12px',
-        '2xl': '16px',
+        // Radius System from Figma
+        'none': '0px',
+        'xxs': '2px',    // 0.125rem
+        'xs': '4px',     // 0.25rem
+        'sm': '6px',     // 0.375rem
+        'md': '8px',     // 0.5rem
+        'lg': '10px',    // 0.625rem
+        'xl': '12px',    // 0.75rem
+        '2xl': '16px',   // 1rem
+        '3xl': '20px',   // 1.25rem
+        '4xl': '24px',   // 1.5rem
+        'full': '9999px', // Full pill shape
+      },
+      screens: {
+        // Grid Layouts from Figma
+        'tablet': '768px',   // Tablet breakpoint
+        'desktop': '1280px', // Desktop breakpoint
+      },
+      maxWidth: {
+        // Container widths based on grid layouts
+        'tablet': '704px',   // Tablet content width (768px - 64px padding)
+        'desktop': '1216px', // Desktop content width (1280px - 64px padding)
       },
       boxShadow: {
         'modal': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
