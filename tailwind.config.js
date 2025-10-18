@@ -178,7 +178,26 @@ module.exports = {
         'surface-dark-2': '#292929',
       },
       spacing: {
-        // Spacing Primitives from Figma (0.25rem = 4px base)
+        // Design System Spacing Variables (16px base)
+        'spacing-none': '0rem',     // 0px
+        'spacing-xxs': '0.125rem',  // 2px
+        'spacing-xs': '0.25rem',    // 4px
+        'spacing-sm': '0.375rem',   // 6px
+        'spacing-md': '0.5rem',     // 8px
+        'spacing-lg': '0.75rem',    // 12px
+        'spacing-xl': '1rem',       // 16px
+        'spacing-2xl': '1.25rem',   // 20px
+        'spacing-3xl': '1.5rem',    // 24px
+        'spacing-4xl': '2rem',      // 32px
+        'spacing-5xl': '2.5rem',    // 40px
+        'spacing-6xl': '3rem',      // 48px
+        'spacing-7xl': '4rem',      // 64px
+        'spacing-8xl': '5rem',      // 80px
+        'spacing-9xl': '6rem',      // 96px
+        'spacing-10xl': '8rem',     // 128px
+        'spacing-11xl': '10rem',    // 160px
+        
+        // Legacy spacing (keeping for compatibility)
         '0': '0px',      // 0rem
         '0.5': '2px',    // 0.125rem
         '1': '4px',      // 0.25rem
@@ -211,8 +230,6 @@ module.exports = {
         '360': '1440px', // 90rem
         '400': '1600px', // 100rem
         '480': '1920px', // 120rem
-        
-        // Legacy spacing (keeping for compatibility)
         '18': '4.5rem',
         '88': '22rem',
       },
@@ -236,7 +253,28 @@ module.exports = {
         'desktop': '1280px', // Desktop breakpoint
       },
       maxWidth: {
-        // Container widths based on grid layouts
+        // Design System Width Variables (16px base)
+        'width-xxs': '20rem',   // 320px
+        'width-xs': '24rem',    // 384px
+        'width-sm': '30rem',    // 480px
+        'width-md': '35rem',    // 560px
+        'width-lg': '40rem',    // 640px
+        'width-xl': '48rem',    // 768px
+        'width-2xl': '64rem',   // 1024px
+        'width-3xl': '80rem',   // 1280px
+        'width-4xl': '90rem',   // 1440px
+        'width-5xl': '100rem',  // 1600px
+        'width-6xl': '120rem',  // 1920px
+        
+        // Container Variables
+        'container-padding-mobile': '1rem',      // 16px
+        'container-padding-desktop': '2rem',     // 32px
+        'container-max-width-desktop': '80rem',  // 1280px
+        
+        // Paragraph Variables
+        'paragraph-max-width': '45rem',         // 720px
+        
+        // Legacy container widths (keeping for compatibility)
         'tablet': '704px',   // Tablet content width (768px - 64px padding)
         'desktop': '1216px', // Desktop content width (1280px - 64px padding)
       },
