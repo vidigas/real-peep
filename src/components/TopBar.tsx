@@ -4,9 +4,9 @@ export default function TopBar() {
       <div className="flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center space-x-4">
-          <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
             <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
             </div>
           </div>
           
@@ -18,14 +18,14 @@ export default function TopBar() {
             <input
               type="text"
               placeholder="Search for transactions, clients, finances."
-              className="pl-10 pr-4 py-2 w-80 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 w-80 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
         </div>
 
         {/* Right Side Actions */}
         <div className="flex items-center space-x-4">
-          <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+          <button className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>

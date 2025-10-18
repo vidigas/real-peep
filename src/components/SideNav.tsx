@@ -2,16 +2,16 @@ export default function SideNav() {
   return (
     <nav className="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-6 space-y-6">
       {/* Logo */}
-      <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+      <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
         <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <div className="w-2 h-2 bg-primary-500 rounded-full"></div>
         </div>
       </div>
 
       {/* Navigation Items */}
       <div className="flex flex-col space-y-4">
         {/* Dashboard - Active */}
-        <button className="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center">
+        <button className="w-10 h-10 rounded-lg bg-primary-50 text-primary-600 flex items-center justify-center">
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z"/>
           </svg>
@@ -41,7 +41,7 @@ export default function SideNav() {
 
       {/* Settings Icon at Bottom */}
       <div className="mt-auto">
-        <button className="w-10 h-10 rounded-lg text-blue-500 hover:bg-blue-50 flex items-center justify-center">
+        <button className="w-10 h-10 rounded-lg text-secondary-500 hover:bg-secondary-50 flex items-center justify-center">
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
           </svg>
