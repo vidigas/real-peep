@@ -1,6 +1,6 @@
 // src/components/transactions/FieldRenderer.tsx
 'use client';
-import { Label, RadioGroup, RadioButton, Select, ButtonGroup, Input, Button, ButtonGroupItem } from '@/components';
+import { Text, RadioGroup, RadioButton, Select, ButtonGroup, Input, Button, ButtonGroupItem } from '@/components';
 import React from 'react';
 import { Controller, useFormContext, useFieldArray } from 'react-hook-form';
 
@@ -34,7 +34,7 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
     const value = watch(spec.name as string);
     return (
       <div className={col}>
-        <Label className="sr-only">{spec.label as string ?? ''}</Label>
+        <Text as="label" size="sm" className="sr-only">{spec.label as string ?? ''}</Text>
         <RadioGroup value={value} onChange={(v)=>setValue(spec.name as string, v)} variant="card" size="lg">
           {(spec.options as Array<{value: string, label: string}> || [])?.map((o) => (
             <RadioButton key={o.value} value={o.value}>{o.label}</RadioButton>
@@ -66,7 +66,7 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
           control={control}
           render={({ field }) => (
             <div>
-              {(spec.label as string) && <Label className="mb-2 block">{spec.label as string}</Label>}
+              {(spec.label as string) && <Text as="label" size="sm" className="mb-2 block">{spec.label as string}</Text>}
   
               <ButtonGroup
                 variant="radio"          // or "segmented" if you want the segmented-control look
@@ -142,7 +142,7 @@ function FeesRepeater({ name }:{ name:string }) {
 
   return (
     <div className="col-span-12 space-y-4">
-      <Label className="block">Other fees</Label>
+      <Text as="label" size="sm" className="block">Other fees</Text>
       {fields.map((f, idx) => {
         const unitPath = `${name}.${idx}.unit` as const;
         const unit = watch(unitPath);
@@ -183,7 +183,7 @@ function FeesRepeater({ name }:{ name:string }) {
                 control={control}
                 render={({ field }) => (
                   <div>
-                    <Label className="mb-2 block">Split</Label>
+                    <Text as="label" size="sm" className="mb-2 block">Split</Text>
                     <ButtonGroup
                       variant="radio"
                       value={field.value}

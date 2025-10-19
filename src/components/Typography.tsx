@@ -1,162 +1,85 @@
-import React from 'react';
+'use client';
+
+import * as React from 'react';
 import { cn } from '../lib/utils';
 
-// Typography variant types
-type DisplaySize = '2xl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs';
-type TextSize = 'xl' | 'lg' | 'md' | 'sm' | 'xs';
-type FontWeight = 'normal' | 'medium' | 'semibold' | 'bold';
-type TypographyColor = 'heading' | 'body' | 'muted' | 'placeholder' | 'disabled';
+type ElementTag = keyof JSX.IntrinsicElements;
 
-interface TypographyProps {
-  children: React.ReactNode;
+type CommonProps = {
+  as?: ElementTag;
+  size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  weight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  /** added "inherit" so text can inherit parent color (e.g., buttons) */
+  color?: 'default' | 'heading' | 'muted' | 'success' | 'danger' | 'warning' | 'inherit';
   className?: string;
-  as?: React.ElementType;
-}
+  children: React.ReactNode;
+};
 
-interface DisplayProps extends TypographyProps {
-  size: DisplaySize;
-  weight?: FontWeight;
-  color?: TypographyColor;
-}
-
-interface TextProps extends TypographyProps {
-  size: TextSize;
-  weight?: FontWeight;
-  color?: TypographyColor;
-}
-
-// Display Typography Component
-export function Display({ 
-  children, 
-  size, 
-  weight = 'normal', 
-  color = 'heading', 
-  className, 
-  as: Component = 'h1' 
-}: DisplayProps) {
-  const sizeClasses = {
-    '2xl': 'text-6xl leading-[90px] tracking-[-0.02em]',
-    'xl': 'text-5xl leading-[72px] tracking-[-0.02em]',
-    'lg': 'text-4xl leading-[60px] tracking-[-0.02em]',
-    'md': 'text-3xl leading-[44px] tracking-[-0.02em]',
-    'sm': 'text-2xl leading-[38px] tracking-[-0.02em]',
-    'xs': 'text-xl leading-[32px] tracking-[-0.02em]',
+type PolymorphicProps<TTag extends ElementTag> = CommonProps &
+  Omit<React.ComponentPropsWithoutRef<TTag>, keyof CommonProps | 'as'> & {
+    as?: TTag;
   };
 
-  const weightClasses = {
-    normal: 'font-normal',
-    medium: 'font-medium',
-    semibold: 'font-semibold',
-    bold: 'font-bold',
-  };
+const colorClass = (color: NonNullable<CommonProps['color']>) => {
+  switch (color) {
+    case 'inherit':
+      return 'text-inherit';
+    case 'heading':
+      return 'text-[#1A1A1A]';
+    case 'muted':
+      return 'text-gray-500';
+    case 'success':
+      return 'text-green-700';
+    case 'danger':
+      return 'text-red-600';
+    case 'warning':
+      return 'text-amber-600';
+    default:
+      return 'text-gray-900';
+  }
+};
 
-  const colorClasses = {
-    heading: 'text-gray-900',
-    body: 'text-gray-800',
-    muted: 'text-gray-400',
-    placeholder: 'text-gray-300',
-    disabled: 'text-gray-300',
-  };
+const weightClass = (w: NonNullable<CommonProps['weight']>) => {
+  switch (w) {
+    case 'medium': return 'font-medium';
+    case 'semibold': return 'font-semibold';
+    case 'bold': return 'font-bold';
+    default: return 'font-normal';
+  }
+};
 
+type DisplayProps<TTag extends ElementTag = 'div'> = PolymorphicProps<TTag>;
+export function Display<TTag extends ElementTag = 'div'>({
+  as, size = 'xs', weight = 'bold', color = 'heading', className, children, ...rest
+}: DisplayProps<TTag>) {
+  const Tag = (as ?? 'div') as ElementTag;
+  const sizeClass =
+    size === 'xs' ? 'text-[24px] leading-[32px]' :
+    size === 'sm' ? 'text-[22px] leading-[30px]' :
+    'text-[28px] leading-[36px]';
   return (
-    <Component
-      className={cn(
-        'font-display',
-        sizeClasses[size],
-        weightClasses[weight],
-        colorClasses[color],
-        className
-      )}
-    >
+    <Tag {...(rest as Record<string, unknown>)}
+      className={cn(sizeClass, weightClass(weight), colorClass(color), className)}>
       {children}
-    </Component>
+    </Tag>
   );
 }
 
-// Text Typography Component
-export function Text({ 
-  children, 
-  size, 
-  weight = 'normal', 
-  color = 'body', 
-  className, 
-  as: Component = 'p' 
-}: TextProps) {
-  const sizeClasses = {
-    'xl': 'text-xl leading-[30px]',
-    'lg': 'text-lg leading-[28px]',
-    'md': 'text-base leading-[24px]',
-    'sm': 'text-sm leading-[20px]',
-    'xs': 'text-xs leading-[18px]',
-  };
-
-  const weightClasses = {
-    normal: 'font-normal',
-    medium: 'font-medium',
-    semibold: 'font-semibold',
-    bold: 'font-bold',
-  };
-
-  const colorClasses = {
-    heading: 'text-gray-900',
-    body: 'text-gray-800',
-    muted: 'text-gray-400',
-    placeholder: 'text-gray-300',
-    disabled: 'text-gray-300',
-  };
-
+type TextProps<TTag extends ElementTag = 'p'> = PolymorphicProps<TTag>;
+export function Text<TTag extends ElementTag = 'p'>({
+  as, size = 'md', weight = 'normal', color = 'default', className, children, ...rest
+}: TextProps<TTag>) {
+  const Tag = (as ?? 'p') as ElementTag;
+  const sizeClass =
+    size === 'xl' ? 'text-[20px] leading-[30px]' :
+    size === 'lg' ? 'text-[18px] leading-[28px]' :
+    size === 'md' ? 'text-[16px] leading-[24px]' :
+    size === 'sm' ? 'text-[14px] leading-[20px]' :
+    'text-[12px] leading-[16px]';
   return (
-    <Component
-      className={cn(
-        'font-body',
-        sizeClasses[size],
-        weightClasses[weight],
-        colorClasses[color],
-        className
-      )}
-    >
+    <Tag {...(rest as Record<string, unknown>)}
+      className={cn(sizeClass, weightClass(weight), colorClass(color), className)}>
       {children}
-    </Component>
-  );
-}
-
-// Convenience components for common use cases
-export function Heading({ children, className, ...props }: Omit<DisplayProps, 'size'>) {
-  return (
-    <Display size="lg" weight="bold" color="heading" className={className} {...props}>
-      {children}
-    </Display>
-  );
-}
-
-export function Subheading({ children, className, ...props }: Omit<DisplayProps, 'size'>) {
-  return (
-    <Display size="md" weight="semibold" color="heading" className={className} {...props}>
-      {children}
-    </Display>
-  );
-}
-
-export function Body({ children, className, ...props }: Omit<TextProps, 'size'>) {
-  return (
-    <Text size="md" weight="normal" color="body" className={className} {...props}>
-      {children}
-    </Text>
-  );
-}
-
-export function Caption({ children, className, ...props }: Omit<TextProps, 'size'>) {
-  return (
-    <Text size="sm" weight="normal" color="muted" className={className} {...props}>
-      {children}
-    </Text>
-  );
-}
-
-export function Label({ children, className, ...props }: Omit<TextProps, 'size'>) {
-  return (
-    <Text size="sm" weight="medium" color="body" className={className} {...props}>
-      {children}
-    </Text>
+    </Tag>
   );
 }

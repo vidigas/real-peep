@@ -37,7 +37,6 @@ export {
 // Layout Components
 export { 
   Modal, 
-  ModalHeader,
   ModalBody,
   ModalFooter
 } from './Modal';
@@ -59,10 +58,5 @@ export {
 // Typography Components
 export { 
   Display, 
-  Text, 
-  Heading, 
-  Subheading, 
-  Body, 
-  Caption, 
-  Label 
+  Text
 } from './Typography';

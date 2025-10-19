@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 /* === Inline icons (inherit currentColor) === */
 function ToolsIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -42,7 +43,7 @@ export default function SideNav() {
       {/* Logo — 60×60 box to match active pill */}
       <Link href="/" aria-label="Home" className="mb-[30px]">
         <div className="h-[60px] w-[60px] flex items-center justify-center">
-          <img src="/realpeep-logo-tight.svg" alt="RealPeep" className="h-[56px] w-auto" />
+          <Image src="/realpeep-logo-tight.svg" alt="RealPeep" width={56} height={56} className="h-[56px] w-auto" />
         </div>
       </Link>
 
@@ -50,7 +51,7 @@ export default function SideNav() {
       <div className="flex flex-col items-center gap-6 text-gray-800">
         {/* Active (60px circle) */}
         <button className="w-[60px] h-[60px] rounded-full bg-[#00875A14] flex items-center justify-center" aria-label="Dashboard">
-          <img src="/nav-grid.svg" alt="" className="w-[60px] h-[60px]" />
+          <Image src="/nav-grid.svg" alt="" width={60} height={60} className="w-[60px] h-[60px]" />
         </button>
 
         {/* 40px buttons, 24px icons */}

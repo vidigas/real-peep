@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useId } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { cn } from '../lib/utils';
 
 interface SelectOption {
@@ -38,15 +39,9 @@ export function Select({
   searchable = false,
   withAvatars = false,
   size = 'md',
-  className,
   labelClassName,
 }: SelectProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
-
-  const autoId = useId();
-  const listboxId = `listbox-${autoId}`;
-  const comboboxId = `combobox-${autoId}`;
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
   const [searchTerm, setSearchTerm] = useState('');
   const selectRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -54,12 +49,6 @@ export function Select({
   const hasError = !!error;
   const isDisabled = disabled;
 
-  // Size classes
-  const sizeClasses = {
-    sm: 'h-8 px-spacing-sm text-sm',
-    md: 'h-10 px-spacing-md text-base',
-    lg: 'h-12 px-spacing-lg text-lg',
-  };
 
   const iconSizeClasses = {
     sm: 'w-4 h-4',
@@ -141,9 +130,11 @@ export function Select({
             {withAvatars && selectedOption && (
               <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
                 {selectedOption.avatar ? (
-                  <img
+                  <Image
                     src={selectedOption.avatar}
                     alt={selectedOption.label}
+                    width={24}
+                    height={24}
                     className="w-6 h-6 rounded-full object-cover"
                   />
                 ) : (
@@ -216,9 +207,11 @@ export function Select({
                     {withAvatars && (
                       <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
                         {option.avatar ? (
-                          <img
+                          <Image
                             src={option.avatar}
                             alt={option.label}
+                            width={24}
+                            height={24}
                             className="w-6 h-6 rounded-full object-cover"
                           />
                         ) : (

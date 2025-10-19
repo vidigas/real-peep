@@ -1,8 +1,9 @@
-import React, { createContext, useContext } from 'react';
+'use client';
+import React, { createContext, useContext, useMemo } from 'react';
 import { cn } from '../lib/utils';
-import { RadioButton, RadioButtonProps } from './RadioButton';
+import { RadioButton, type RadioButtonProps } from './RadioButton';
 
-interface RadioGroupContextValue {
+interface Ctx {
   name: string;
   value: string | number | undefined;
   onChange: (value: string | number) => void;
@@ -10,8 +11,9 @@ interface RadioGroupContextValue {
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'card' | 'compact';
 }
+const RadioGroupContext = createContext<Ctx | null>(null);
 
-const RadioGroupContext = createContext<RadioGroupContextValue | null>(null);
+type Layout = 'flex' | 'grid';
 
 interface RadioGroupProps {
   children: React.ReactNode;
@@ -21,9 +23,20 @@ interface RadioGroupProps {
   disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'card' | 'compact';
-  orientation?: 'horizontal' | 'vertical';
+  orientation?: 'horizontal' | 'vertical'; // kept for back-compat with flex layout
+  /** NEW: grid layout to stretch full width */
+  layout?: Layout;
+  columns?: 2 | 3 | 4 | 5 | 6;
   className?: string;
 }
+
+const colClass: Record<NonNullable<RadioGroupProps['columns']>, string> = {
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+  5: 'grid-cols-5',
+  6: 'grid-cols-6',
+};
 
 export function RadioGroup({
   children,
@@ -34,42 +47,59 @@ export function RadioGroup({
   size = 'md',
   variant = 'default',
   orientation = 'vertical',
+  layout = 'grid',          // default to grid so cards stretch
+  columns = 4,
   className,
 }: RadioGroupProps) {
-  const groupName = name || `radio-group-${Math.random().toString(36).substr(2, 9)}`;
+  const groupName = useMemo(
+    () => name || `radio-group-${Math.random().toString(36).slice(2, 9)}`,
+    [name]
+  );
 
-  const contextValue: RadioGroupContextValue = {
-    name: groupName,
-    value,
-    onChange,
-    disabled,
-    size,
-    variant,
-  };
+  const ctx: Ctx = { name: groupName, value, onChange, disabled, size, variant };
 
   return (
-    <RadioGroupContext.Provider value={contextValue}>
+    <RadioGroupContext.Provider value={ctx}>
       <div
         role="radiogroup"
-        onKeyDown={(e) => {
-          const values = React.Children.toArray(children) as React.ReactElement[];
-          const idx = values.findIndex((c: React.ReactElement) => (c?.props as Record<string, unknown>)?.value === value);
-          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); const next = values[(idx+1)%values.length]; ((next?.props as Record<string, unknown>)?.onChange as ((value: unknown) => void))?.((next.props as Record<string, unknown>).value); }
-          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); const prev = values[(idx-1+values.length)%values.length]; ((prev?.props as Record<string, unknown>)?.onChange as ((value: unknown) => void))?.((prev.props as Record<string, unknown>).value); }
-        }}
         className={cn(
-          'flex',
-          orientation === 'horizontal' ? 'flex-row gap-spacing-md' : 'flex-col gap-spacing-sm',
+          layout === 'grid'
+            ? cn('grid w-full gap-[12px]', colClass[columns])
+            : cn(
+                'flex',
+                orientation === 'horizontal' ? 'flex-row gap-[12px] w-full' : 'flex-col gap-2'
+              ),
           className
         )}
+        onKeyDown={(e) => {
+          const items = React.Children.toArray(children) as React.ReactElement[];
+          const idx = items.findIndex(
+            (c) => (c?.props as Record<string, unknown>)?.value === value
+          );
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            const next = items[(idx + 1) % items.length];
+            onChange((next.props as { value: string | number }).value);
+          }
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prev = items[(idx - 1 + items.length) % items.length];
+            onChange((prev.props as { value: string | number }).value);
+          }
+        }}
       >
+        {/* children become equal-width columns because cards don't fix width */}
         {children}
       </div>
     </RadioGroupContext.Provider>
   );
 }
 
-interface RadioGroupItemProps extends Omit<RadioButtonProps, 'name' | 'checked' | 'onChange' | 'disabled' | 'size' | 'variant'> {
+interface RadioGroupItemProps
+  extends Omit<
+    RadioButtonProps,
+    'name' | 'checked' | 'onChange' | 'disabled' | 'size' | 'variant'
+  > {
   value: string | number;
   label?: string;
   description?: string;
@@ -82,23 +112,18 @@ export function RadioGroupItem({
   className,
   ...props
 }: RadioGroupItemProps) {
-  const context = useContext(RadioGroupContext);
-  
-  if (!context) {
-    throw new Error('RadioGroupItem must be used within a RadioGroup');
-  }
+  const ctx = useContext(RadioGroupContext);
+  if (!ctx) throw new Error('RadioGroupItem must be used within a RadioGroup');
 
-  const { name, value: selectedValue, onChange, disabled, size, variant } = context;
-  const isChecked = selectedValue === value;
-  const isDisabled = disabled || (props as { disabled?: boolean }).disabled;
+  const { name, value: selected, onChange, disabled, size, variant } = ctx;
 
   return (
     <RadioButton
       name={name}
       value={value}
-      checked={isChecked}
+      checked={selected === value}
       onChange={() => onChange(value)}
-      disabled={isDisabled}
+      disabled={disabled || (props as { disabled?: boolean }).disabled}
       size={size}
       variant={variant}
       label={label}
@@ -109,21 +134,16 @@ export function RadioGroupItem({
   );
 }
 
-// Convenience components for different orientations
-export function HorizontalRadioGroup({ children, ...props }: Omit<RadioGroupProps, 'orientation'>) {
-  return <RadioGroup orientation="horizontal" {...props}>{children}</RadioGroup>;
+/* Convenience */
+export function HorizontalRadioGroup(props: Omit<RadioGroupProps, 'orientation' | 'layout'>) {
+  return <RadioGroup layout="flex" orientation="horizontal" {...props} />;
 }
-
-export function VerticalRadioGroup({ children, ...props }: Omit<RadioGroupProps, 'orientation'>) {
-  return <RadioGroup orientation="vertical" {...props}>{children}</RadioGroup>;
+export function VerticalRadioGroup(props: Omit<RadioGroupProps, 'orientation' | 'layout'>) {
+  return <RadioGroup layout="flex" orientation="vertical" {...props} />;
 }
-
-// Card variant for radio groups
-export function RadioGroupCard({ children, ...props }: Omit<RadioGroupProps, 'variant'>) {
-  return <RadioGroup variant="card" {...props}>{children}</RadioGroup>;
+export function RadioGroupCard(props: Omit<RadioGroupProps, 'variant'>) {
+  return <RadioGroup variant="card" {...props} />;
 }
-
-// Compact variant for radio groups
-export function RadioGroupCompact({ children, ...props }: Omit<RadioGroupProps, 'variant'>) {
-  return <RadioGroup variant="compact" {...props}>{children}</RadioGroup>;
+export function RadioGroupCompact(props: Omit<RadioGroupProps, 'variant'>) {
+  return <RadioGroup variant="compact" {...props} />;
 }

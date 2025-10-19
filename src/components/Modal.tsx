@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../lib/utils';
+import { Display } from './Typography'; // ⬅️ use DS typography
 
 interface ModalProps {
   isOpen: boolean;
@@ -25,10 +26,8 @@ const sizeClasses: Record<NonNullable<ModalProps['size']>, string> = {
   sm:  'w-[min(640px,calc(100vw-32px))] max-h-[min(80vh,720px)]',
   md:  'w-[min(768px,calc(100vw-32px))] max-h-[min(85vh,800px)]',
   lg:  'w-[min(864px,calc(100vw-32px))] max-h-[min(88vh,880px)]',
-
   // Figma spec – Fixed 848×607 with small-screen clamp
   xl:  'w-[min(848px,calc(100vw-32px))] h-[min(607px,calc(100vh-32px))]',
-
   full:'w-[min(90vw,calc(100vw-32px))] h-[min(90vh,calc(100vh-32px))]',
 };
 
@@ -54,7 +53,6 @@ export function Modal({
   const contentRef = useRef<HTMLDivElement>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
 
-  // Body scroll lock (with scrollbar compensation)
   useEffect(() => {
     if (!isOpen) return;
     const prevOverflow = document.body.style.overflow;
@@ -68,59 +66,36 @@ export function Modal({
     };
   }, [isOpen]);
 
-  // Focus management + minimal trap
   useEffect(() => {
     if (!isOpen) return;
-
     lastFocusedRef.current = document.activeElement as HTMLElement;
     (initialFocusRef?.current || contentRef.current)?.focus();
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && closeOnEscape) {
         onCloseRequest?.('esc');
         onClose();
       }
-      if (e.key === 'Tab' && contentRef.current) {
-        const focusables = contentRef.current.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-        );
-        if (focusables.length === 0) return;
-        const first = focusables[0];
-        const last = focusables[focusables.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault(); last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault(); first.focus();
-        }
-      }
     };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, [isOpen, initialFocusRef, closeOnEscape, onClose, onCloseRequest]);
 
-  // Restore focus on close
-  useEffect(() => {
-    if (!isOpen) lastFocusedRef.current?.focus?.();
-  }, [isOpen]);
+  useEffect(() => { if (!isOpen) lastFocusedRef.current?.focus?.(); }, [isOpen]);
 
   if (!isOpen) return null;
 
   const overlay = (
     <div
-      className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center p-4',
-        overlayClassName
-      )}
+      className={cn('fixed inset-0 z-50 flex items-center justify-center p-4', overlayClassName)}
       onClick={(e) => {
         if (!closeOnOverlayClick) return;
-        if (e.target !== e.currentTarget) return; // only close on true backdrop click
+        if (e.target !== e.currentTarget) return;
         onCloseRequest?.('overlay');
         onClose();
       }}
     >
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
-
       <div
         role="dialog"
         aria-modal="true"
@@ -131,8 +106,8 @@ export function Modal({
         ref={contentRef}
         className={cn(
           'relative z-10 w-full bg-white shadow-xl outline-none',
-          'rounded-[20px]',
-          'overflow-hidden flex flex-col', // footer pinned, body scrolls
+          'rounded-[20px] overflow-hidden',
+          'flex flex-col', // footer pinned
           'mx-auto',
           sizeClasses[size],
           contentClassName,
@@ -140,11 +115,18 @@ export function Modal({
         )}
       >
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center justify-between px-6 pt-6 pb-0">
             {title && (
-              <h2 id={labelId} className="text-xl font-semibold text-gray-900">
+              <Display
+                as="h2"
+                id={labelId}
+                size="xs"
+                weight="bold"
+                color="heading"
+                className="tracking-[0.24px]"
+              >
                 {title}
-              </h2>
+              </Display>
             )}
             {showCloseButton && (
               <button
@@ -160,8 +142,6 @@ export function Modal({
             )}
           </div>
         )}
-
-        {/* children should usually be <ModalBody/> + <ModalFooter/> */}
         {children}
       </div>
     </div>
@@ -171,27 +151,13 @@ export function Modal({
 }
 
 /* Slots */
-export function ModalHeader({ children, title, titleId, className }: {
-  children?: React.ReactNode; title?: string; titleId?: string; className?: string;
-}) {
-  return (
-    <div className={cn('flex items-center justify-between px-6 py-4', className)}>
-      {title ? <h2 id={titleId} className="text-xl font-semibold text-gray-900">{title}</h2> : children}
-    </div>
-  );
-}
-
 export function ModalBody({ children, className }: { children: React.ReactNode; className?: string; }) {
-  return (
-    <div className={cn('flex-1 min-h-0 overflow-auto px-6 py-6', className)}>
-      {children}
-    </div>
-  );
+  return <div className={cn('flex-1 min-h-0 overflow-auto px-6 py-6', className)}>{children}</div>;
 }
 
 export function ModalFooter({ children, className }: { children: React.ReactNode; className?: string; }) {
   return (
-    <div className={cn('px-6 py-6 border-t border-gray-200 flex items-center justify-between', className)}>
+    <div className={cn('mt-auto px-6 py-6 border-t border-gray-200 flex items-center justify-between', className)}>
       {children}
     </div>
   );
