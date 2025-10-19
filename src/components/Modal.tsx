@@ -1,23 +1,22 @@
-// components/Modal.tsx
-'use client';
-import * as React from 'react';
-import { X } from 'lucide-react';
-import clsx from 'clsx';
+"use client";
+import * as React from "react";
+import { X } from "lucide-react";
+import clsx from "clsx";
 
-type ModalSize = 'sm' | 'md' | 'lg' | 'xl';
+type ModalSize = "sm" | "md" | "lg" | "xl";
 
 const sizeClasses: Record<ModalSize, string> = {
-  sm: 'w-[480px]',
-  md: 'w-[640px]',
-  lg: 'w-[720px]',
-  xl: 'w-[848px]', // Figma width
+  sm: "w-[480px]",
+  md: "w-[640px]",
+  lg: "w-[720px]",
+  xl: "w-[848px]", // Figma width
 };
 
 export function Modal({
   isOpen,
   onClose,
   title,
-  size = 'md',
+  size = "md",
   contentClassName,
   children,
 }: {
@@ -38,24 +37,21 @@ export function Modal({
         aria-hidden="true"
         onClick={onClose}
       />
+
       {/* dialog */}
       <div
         role="dialog"
         aria-modal="true"
         className={clsx(
-          'relative z-[101] w-full',
+          "relative z-[101]",
           sizeClasses[size],
-          // keep 10px breathing room to viewport (Figma shows 10 outside)
-          'my-[10px] mx-[10px]',
-          // column so footer pins; Figma radius + shadow
-          'flex flex-col rounded-[20px] bg-white',
-          'shadow-[0_5px_20px_0_rgba(128,128,128,0.40)]',
-          // height: cap to viewport minus 20px; ensure children can scroll
-          'max-h-[calc(100vh-20px)] overflow-hidden'
+          "h-[600px] w-[848px]", // fixed Figma size
+          "flex flex-col rounded-[20px] bg-white",
+          "shadow-[0_5px_20px_0_rgba(128,128,128,0.40)]"
         )}
       >
         {/* header — 20px gutters */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0">
           {title ? (
             <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
           ) : (
@@ -71,8 +67,15 @@ export function Modal({
           </button>
         </div>
 
-        {/* content wrapper (caller controls extra padding per section) */}
-        <div className={clsx('flex-1 min-h-0', contentClassName)}>{children}</div>
+        {/* scrollable body */}
+        <div
+          className={clsx(
+            "flex-1 min-h-0 overflow-y-auto",
+            contentClassName
+          )}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -85,11 +88,10 @@ export function ModalBody({
   children: React.ReactNode;
   className?: string;
 }) {
-  // no default px; callers add exact gutters
-  return <div className={clsx('py-0', className)}>{children}</div>;
+  return <div className={clsx("py-0", className)}>{children}</div>;
 }
 
-/** Full-bleed footer; restore 20px inner gutters; 16px vertical from Figma */
+/** Full-bleed footer; fixed inside modal bottom */
 export function ModalFooter({
   children,
   className,
@@ -100,11 +102,10 @@ export function ModalFooter({
   return (
     <div
       className={clsx(
-        'mt-auto',
-        '-mx-5 px-5',
-        'py-4',
-        'border-t border-gray-200',
-        'flex items-center justify-between',
+        "absolute bottom-0 left-0 right-0",
+        "px-5 py-4 border-t border-gray-200",
+        "flex items-center justify-between",
+        "bg-white",
         className
       )}
     >

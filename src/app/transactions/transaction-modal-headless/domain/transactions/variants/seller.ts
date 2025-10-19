@@ -1,4 +1,3 @@
-// src/domain/transactions/variants/seller.ts
 import { z } from 'zod';
 import { VariantSpec, TxnStatus, FeeRow } from '../schema';
 
@@ -18,30 +17,38 @@ const STATES = [
   'UT','VA','VT','WA','WI','WV'
 ] as const;
 
+/* ---------- Schemas ---------- */
 const S0 = z.object({ type: z.literal('seller') });
+
+// Only owner_full_name required
 const S1 = z.object({
   owner_full_name: z.string().min(1, 'Required'),
-  property_type: z.enum(PROPERTY_TYPES.map(o => o.value) as [string, ...string[]]),
-  address_line: z.string().min(1, 'Required'),
-  city: z.string().min(1, 'Required'),
-  zip_code: z.string().min(1, 'Required'),
-  state: z.enum(STATES as unknown as [string, ...string[]]),
+  property_type: z.enum(PROPERTY_TYPES.map(o => o.value) as [string, ...string[]]).optional(),
+  address_line: z.string().optional(),
+  city: z.string().optional(),
+  zip_code: z.string().optional(),
+  state: z.enum(STATES as unknown as [string, ...string[]]).optional(),
 });
+
 const S2 = z.object({
   list_price_cents: z.number().int().nonnegative().optional(),
   list_date: z.string().optional(),
   expiration_date: z.string().optional(),
   listing_agent_pct: z.number().min(0).max(100).optional(),
   broker_share_pct: z.number().min(0).max(100).optional(),
-  fees: z.array(FeeRow).default([]),
+  fees: z.array(FeeRow).default([]).optional(),
   lead_source: z.string().optional(),
   lead_source_other: z.string().optional(),
 });
-const S3 = z.object({ status: TxnStatus });
+
+const S3 = z.object({
+  status: TxnStatus.optional(),
+});
 
 export const SellerSchema = S0.and(S1).and(S2).and(S3);
 export type SellerForm = z.infer<typeof SellerSchema>;
 
+/* ---------- Variant ---------- */
 export const SellerVariant: VariantSpec<SellerForm> = {
   type: 'seller',
   rootSchema: SellerSchema,
@@ -79,7 +86,7 @@ export const SellerVariant: VariantSpec<SellerForm> = {
           label: 'Property type',
           kind: 'select',
           width: '1/2',
-          options: PROPERTY_TYPES as unknown as Array<{ value: string; label: string }>
+          options: PROPERTY_TYPES as unknown as Array<{ value: string; label: string }>,
         },
         { name: 'address_line', label: 'Address', kind: 'text', width: 'full', placeholder: 'Enter Address' },
         { name: 'city', label: 'City', kind: 'text', width: '1/3' },

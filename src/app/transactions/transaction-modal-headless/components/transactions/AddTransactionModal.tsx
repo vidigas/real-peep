@@ -6,6 +6,7 @@ import Stepper, { type Step } from '@/components/Stepper';
 import { RadioGroup, RadioGroupItem } from '@/components/RadioGroup';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/Typography';
+import { BuyerVariant, SellerVariant } from '../../domain/transactions/variants';
 
 import type { FieldValues } from 'react-hook-form';
 import {
@@ -13,7 +14,6 @@ import {
   TransactionFormProvider,
 } from '../../domain/transactions/form-controller';
 import type { VariantSpec } from '../../domain/transactions/schema';
-import { BuyerVariant, SellerVariant } from '../../domain/transactions/variants';
 import { FieldRenderer } from './FieldRenderer';
 
 type TxnTypeAll = 'buyer' | 'seller' | 'tenant' | 'landlord';
@@ -40,17 +40,7 @@ export default function AddTransactionModal({
   // cast through unknown to avoid invariance mismatch
   const activeVariant = (variantByType[type] ?? BuyerVariant) as unknown as VariantSpec<Record<string, unknown>>;
 
-  const {
-    methods,
-    steps,
-    step,
-    stepIdx,
-    setStepIdx,
-    next,
-    back,
-    isLast,
-    submitAll,
-  } = useTransactionForm(activeVariant);
+  const { methods, steps, step, stepIdx, setStepIdx, next, back, isLast, submitAll } = useTransactionForm(activeVariant);
 
   React.useEffect(() => {
     methods.reset(activeVariant.defaults as FieldValues);
