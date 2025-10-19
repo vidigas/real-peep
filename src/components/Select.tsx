@@ -29,6 +29,7 @@ export function Select({
   options,
   value,
   onChange,
+  name,
   placeholder = 'Select option',
   label,
   hint,
@@ -39,7 +40,7 @@ export function Select({
   size = 'md',
   className,
   labelClassName,
-}: SelectProps) {
+}: SelectProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
 
   const autoId = useId();
@@ -130,7 +131,6 @@ export function Select({
       )}
       
       <div className="relative" ref={selectRef}>
-        {/* Trigger Button */}
         <button
           type="button"
           className="w-full rounded-lg border border-solid transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-50 flex items-center justify-between"
@@ -176,12 +176,9 @@ export function Select({
           </svg>
         </button>
 
-        {/* Form compatibility */}
-      {name && <input type="hidden" name={name} value={value ?? ''} />}
-      {/* Dropdown */}
+        {name ? <input type="hidden" name={name} value={value ?? ''} /> : null}
         {isOpen && (
           <div className="absolute z-50 w-full mt-spacing-xs bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-hidden">
-            {/* Search Input */}
             {searchable && (
               <div className="p-spacing-sm border-b border-gray-200">
                 <input
@@ -195,7 +192,6 @@ export function Select({
               </div>
             )}
 
-            {/* Options List */}
             <div className="max-h-48 overflow-y-auto">
               {filteredOptions.length === 0 ? (
                 <div className="px-spacing-md py-spacing-sm text-sm text-gray-500">
@@ -250,7 +246,6 @@ export function Select({
         )}
       </div>
       
-      {/* Hint or Error Text */}
       {(hint || error) && (
         <p className={cn(
           textSizeClasses[size],
