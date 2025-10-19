@@ -133,23 +133,7 @@ export function Select({
         {/* Trigger Button */}
         <button
           type="button"
-          className={cn(
-            'w-full rounded-lg border border-solid',
-            'transition-colors duration-200',
-            'focus:outline-none focus:ring-2 focus:ring-offset-2',
-            'disabled:cursor-not-allowed disabled:bg-gray-50',
-            'flex items-center justify-between',
-            sizeClasses[size],
-            
-            // States
-            isDisabled
-              ? 'bg-gray-50 border-gray-200 text-gray-400'
-              : hasError
-              ? 'border-error-500 focus:ring-error-500'
-              : 'border-gray-300 focus:border-primary-500 focus:ring-primary-500',
-            
-            className
-          )}
+          className="w-full rounded-lg border border-solid transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-gray-50 flex items-center justify-between"
           onClick={handleToggle}
           disabled={isDisabled}
         >
