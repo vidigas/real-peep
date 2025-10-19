@@ -47,7 +47,8 @@ export function Modal({
           sizeClasses[size],
           "h-[600px] w-[848px]", // fixed Figma size
           "flex flex-col rounded-[20px] bg-white",
-          "shadow-[0_5px_20px_0_rgba(128,128,128,0.40)]"
+          "shadow-[0_5px_20px_0_rgba(128,128,128,0.40)]",
+          "overflow-hidden"
         )}
       >
         {/* header — 20px gutters */}
