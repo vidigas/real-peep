@@ -24,53 +24,81 @@ export type BuyerForm = z.infer<typeof BuyerSchema>;
 export const BuyerVariant: VariantSpec<BuyerForm> = {
   type: 'buyer',
   rootSchema: BuyerSchema,
-  defaults: { type:'buyer', status:'active', fees:[] },
+  defaults: { type: 'buyer', status: 'active', fees: [] },
   steps: [
     {
-      id:'type', title:'Transaction Type',
-      fields:[{ name:'type', kind:'radio-cards', options:[
-        { value:'buyer', label:'Buyer' },
-        { value:'seller', label:'Seller' },
-        { value:'tenant', label:'Tenant' },
-        { value:'landlord', label:'Landlord' },
-      ]}],
-      fieldNames: ['type']
-    },
-    {
-      id:'buyer', title:'Buyer Details',
-      fields:[
-        { name:'buyer_full_name', label:'Full Name', kind:'text', width:'1/2', placeholder:'Full Name' },
-        { name:'budget_cents', label:`Buyer's Budget`, kind:'currency', width:'1/2', placeholder:'$ 1,000.00' },
-        { name:'agreement_start', label:'Start Date', kind:'date', width:'1/2' },
-        { name:'agreement_end', label:'Expiration Date', kind:'date', width:'1/2' },
+      id: 'type',
+      title: 'Transaction Type',
+      fields: [
+        {
+          name: 'type',
+          kind: 'radio-cards',
+          options: [
+            { value: 'buyer', label: 'Buyer' },
+            { value: 'seller', label: 'Seller' },
+            { value: 'tenant', label: 'Tenant', disabled: true },
+            { value: 'landlord', label: 'Landlord', disabled: true },
+          ],
+        },
       ],
-      fieldNames: ['buyer_full_name', 'budget_cents', 'agreement_start', 'agreement_end']
+      fieldNames: ['type'],
     },
     {
-      id:'commission', title:'Commission Details',
-      fields:[
-        { name:'buyer_agent_pct', label:'Buyer Agent %', kind:'percent', width:'1/2' },
-        { name:'broker_share_pct', label:'% to Broker', kind:'percent', width:'1/2' },
-        { name:'fees', label:'Other fees', kind:'fees', width:'full' },
-        { name:'lead_source', label:'Source', kind:'select', width:'1/2', options:[
-          { value:'expired_cancelled', label:'Expired/Cancelled' },
-          { value:'open_house', label:'Open House' },
-          { value:'soi', label:'SOI (Sphere of influence)' },
-          { value:'other', label:'Other' },
-        ]},
-        { name:'lead_source_other', label:'', kind:'text', width:'1/2', placeholder:'If Other, type here' },
+      id: 'buyer',
+      title: 'Buyer Details',
+      fields: [
+        // row 1
+        { name: 'buyer_full_name', label: 'Full Name',      kind: 'text',     width: '1/2', placeholder: 'Full Name' },
+        { name: 'budget_cents',    label: "Buyer's Budget", kind: 'currency', width: '1/2', placeholder: '$ 1,000.00' },
+
+        // subsection title between rows
+        { name: 'agreement_title', kind: 'section-title', title: 'Buyer Agreement Details' },
+
+        // row 2
+        { name: 'agreement_start', label: 'Start Date',      kind: 'date', width: '1/2' },
+        { name: 'agreement_end',   label: 'Expiration Date', kind: 'date', width: '1/2' },
       ],
-      fieldNames: ['buyer_agent_pct', 'broker_share_pct', 'fees', 'lead_source', 'lead_source_other']
+      fieldNames: ['buyer_full_name', 'budget_cents', 'agreement_start', 'agreement_end'],
     },
     {
-      id:'status', title:'Status',
-      fields:[{ name:'status', kind:'radio-cards', options:[
-        { value:'active', label:'Active' },
-        { value:'pending', label:'Pending' },
-        { value:'closed', label:'Closed' },
-      ]}],
-      fieldNames: ['status']
-    }
+      id: 'commission',
+      title: 'Commission & Fees',
+      fields: [
+        { name: 'buyer_agent_pct', label: 'Buyer Agent %', kind: 'percent', width: '1/2' },
+        { name: 'broker_share_pct', label: '% to Broker',  kind: 'percent', width: '1/2' },
+        { name: 'fees', label: 'Other fees', kind: 'fees', width: 'full' },
+        {
+          name: 'lead_source',
+          label: 'Source',
+          kind: 'select',
+          width: '1/2',
+          options: [
+            { value: 'expired_cancelled', label: 'Expired/Cancelled' },
+            { value: 'open_house',        label: 'Open House' },
+            { value: 'soi',               label: 'SOI (Sphere of influence)' },
+            { value: 'other',             label: 'Other' },
+          ],
+        },
+        { name: 'lead_source_other', label: '', kind: 'text', width: '1/2', placeholder: 'If Other, type here' },
+      ],
+      fieldNames: ['buyer_agent_pct', 'broker_share_pct', 'fees', 'lead_source', 'lead_source_other'],
+    },
+    {
+      id: 'status',
+      title: 'Status',
+      fields: [
+        {
+          name: 'status',
+          kind: 'radio-cards',
+          options: [
+            { value: 'active',  label: 'Active' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'closed',  label: 'Closed' },
+          ],
+        },
+      ],
+      fieldNames: ['status'],
+    },
   ],
-  toPayload: (d) => d,
+  toPayload: (d) => d as Record<string, unknown>,
 };

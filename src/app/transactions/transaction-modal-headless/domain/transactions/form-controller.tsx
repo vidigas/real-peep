@@ -15,27 +15,27 @@ import type { ZodTypeAny } from 'zod';
 import type { VariantSpec } from './schema';
 
 /**
- * Internal shim to silence the Zod ↔ RHF generic mismatch.
- * Keeps runtime behavior identical.
+ * Zod ↔ RHF shim
  */
-function zodResolverShim<FormT extends FieldValues>(
+function zodResolverShim(
   schema: ZodTypeAny
-): Resolver<FormT, Record<string, unknown>, FormT> {
-  return (_zodResolver as unknown as (s: ZodTypeAny) => Resolver<FormT, Record<string, unknown>, FormT>)(schema);
+): Resolver<FieldValues, Record<string, unknown>, FieldValues> {
+  return (_zodResolver as unknown as (s: ZodTypeAny) => Resolver<FieldValues, Record<string, unknown>, FieldValues>)(schema);
 }
 
-export function useTransactionForm<FormT extends FieldValues>(
-  variant: VariantSpec<FormT>
-) {
+/**
+ * Variant-agnostic controller: accepts any variant, runs Zod at runtime,
+ * and manages step-scoped validation.
+ */
+export function useTransactionForm(variant: VariantSpec<Record<string, unknown>>) {
   const [stepIdx, setStepIdx] = React.useState(0);
 
-  // ✅ use our shim, not the direct zodResolver call
-  const resolver = zodResolverShim<FormT>(variant.rootSchema);
+  const resolver = zodResolverShim(variant.rootSchema as ZodTypeAny);
 
-  const methods = useForm<FormT>({
+  const methods = useForm<FieldValues>({
     resolver,
     mode: 'onChange',
-    defaultValues: variant.defaults as DefaultValues<FormT>,
+    defaultValues: variant.defaults as DefaultValues<FieldValues>,
   });
 
   const step = variant.steps[stepIdx];
@@ -43,7 +43,7 @@ export function useTransactionForm<FormT extends FieldValues>(
   const isLast = stepIdx === variant.steps.length - 1;
 
   const next = async () => {
-    const ok = await methods.trigger(step.fieldNames as Path<FormT>[]);
+    const ok = await methods.trigger(step.fieldNames as Path<FieldValues>[]);
     if (!ok) return;
     if (!isLast) setStepIdx((i) => i + 1);
   };

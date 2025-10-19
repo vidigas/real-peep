@@ -26,13 +26,7 @@ export { EmailInput } from './EmailInput';
 export { PhoneInput } from './PhoneInput';
 export { CurrencyInput } from './CurrencyInput';
 export { CardInput } from './CardInput';
-export { 
-  Select, 
-  SelectWithAvatars, 
-  SearchableSelect, 
-  SelectSmall, 
-  SelectLarge 
-} from './Select';
+export { Select } from './Select';
 
 // Layout Components
 export { 

@@ -1,7 +1,17 @@
 // src/components/transactions/FieldRenderer.tsx
 'use client';
-import { Text, RadioGroup, RadioButton, Select, ButtonGroup, Input, Button, ButtonGroupItem } from '@/components';
+
 import React from 'react';
+import {
+  Text,
+  RadioGroup,
+  RadioButton,
+  Select,
+  ButtonGroup,
+  ButtonGroupItem,
+  Input,
+  Button,
+} from '@/components';
 import { Controller, useFormContext, useFieldArray } from 'react-hook-form';
 
 function parseCurrencyToCents(input: string): number | undefined {
@@ -11,10 +21,15 @@ function parseCurrencyToCents(input: string): number | undefined {
   if (Number.isNaN(num)) return undefined;
   return Math.round(num * 100);
 }
+
 function formatCentsToCurrency(cents?: number): string {
   if (cents == null) return '';
-  return (cents / 100).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+  return (cents / 100).toLocaleString(undefined, {
+    style: 'currency',
+    currency: 'USD',
+  });
 }
+
 function parsePercent(input: string): number | undefined {
   if (!input) return undefined;
   const num = Number(input.replace(/[^\d.]/g, ''));
@@ -25,25 +40,61 @@ function parsePercent(input: string): number | undefined {
 export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
   const { control, setValue, watch } = useFormContext();
 
-  const col = spec.width === '1/2' ? 'col-span-12 md:col-span-6'
-    : spec.width === '1/3' ? 'col-span-12 md:col-span-4'
-    : spec.width === '2/3' ? 'col-span-12 md:col-span-8'
-    : 'col-span-12';
+  const col =
+    spec.width === '1/2'
+      ? 'col-span-12 md:col-span-6'
+      : spec.width === '1/3'
+      ? 'col-span-12 md:col-span-4'
+      : spec.width === '2/3'
+      ? 'col-span-12 md:col-span-8'
+      : 'col-span-12';
 
+  // ── Subsection title (visual-only) ────────────────────────────────────────────
+  if (spec.kind === 'section-title') {
+    return (
+      <div className="col-span-12 mt-10 mb-2">
+        <Text
+          as="h4"
+          size="lg"
+          weight="bold"
+          className="text-gray-900 leading-[28px]"
+        >
+          {String((spec as { title?: string }).title ?? '')}
+        </Text>
+      </div>
+    );
+  }
+
+  // ── Radio cards ──────────────────────────────────────────────────────────────
   if (spec.kind === 'radio-cards') {
     const value = watch(spec.name as string);
     return (
       <div className={col}>
-        <Text as="label" size="sm" className="sr-only">{spec.label as string ?? ''}</Text>
-        <RadioGroup value={value} onChange={(v)=>setValue(spec.name as string, v)} variant="card" size="lg">
-          {(spec.options as Array<{value: string, label: string}> || [])?.map((o) => (
-            <RadioButton key={o.value} value={o.value}>{o.label}</RadioButton>
+        {(spec as { label?: string }).label ? (
+          <Text as="label" size="sm" className="sr-only">
+            {(spec as { label?: string }).label as string}
+          </Text>
+        ) : null}
+        <RadioGroup
+          value={value}
+          onChange={(v) => setValue(spec.name as string, v)}
+          variant="card"
+          size="lg"
+        >
+          {(
+            ((spec as { options?: Array<{ value: string; label: string }> }).options) ||
+            []
+          ).map((o) => (
+            <RadioButton key={o.value} value={o.value}>
+              {o.label}
+            </RadioButton>
           ))}
         </RadioGroup>
       </div>
     );
   }
 
+  // ── Select ───────────────────────────────────────────────────────────────────
   if (spec.kind === 'select') {
     return (
       <div className={col}>
@@ -51,13 +102,24 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
           name={spec.name as string}
           control={control}
           render={({ field, fieldState }) => (
-            <Select label={spec.label as string} placeholder={spec.placeholder as string || 'Select'} options={spec.options as Array<{value: string, label: string}> || []} value={field.value} onChange={field.onChange} error={fieldState.error?.message} />
+            <Select
+              label={(spec as { label?: string }).label as string}
+              placeholder={((spec as { placeholder?: string }).placeholder) || 'Select'}
+              options={
+                ((spec as { options?: Array<{ value: string; label: string }> }).options) ||
+                []
+              }
+              value={field.value ?? ''}           // keep controlled
+              onChange={(v) => field.onChange(v)} // pass string
+              error={fieldState.error?.message}
+            />
           )}
         />
       </div>
     );
   }
 
+  // ── Segmented (ButtonGroup-as-radio) ─────────────────────────────────────────
   if (spec.kind === 'segmented') {
     return (
       <div className={col}>
@@ -66,15 +128,23 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
           control={control}
           render={({ field }) => (
             <div>
-              {(spec.label as string) && <Text as="label" size="sm" className="mb-2 block">{spec.label as string}</Text>}
-  
+              {(spec as { label?: string }).label && (
+                <Text as="label" size="sm" className="mb-2 block">
+                  {(spec as { label?: string }).label as string}
+                </Text>
+              )}
               <ButtonGroup
-                variant="radio"          // or "segmented" if you want the segmented-control look
+                variant="radio"
                 value={field.value}
                 onChange={field.onChange}
               >
-                {(spec.options as Array<{value: string | number, label: React.ReactNode}> || []).map((opt) => (
-                  <ButtonGroupItem key={opt.value} value={opt.value}>
+                {(
+                  ((spec as { options?: Array<{
+                    value: string | number;
+                    label: React.ReactNode;
+                  }> }).options) || []
+                ).map((opt) => (
+                  <ButtonGroupItem key={String(opt.value)} value={opt.value}>
                     {opt.label}
                   </ButtonGroupItem>
                 ))}
@@ -85,8 +155,8 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
       </div>
     );
   }
-  
 
+  // ── Date ─────────────────────────────────────────────────────────────────────
   if (spec.kind === 'date') {
     return (
       <div className={col}>
@@ -94,32 +164,14 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
           name={spec.name as string}
           control={control}
           render={({ field, fieldState }) => (
-            <Input type="date" label={spec.label as string} placeholder={spec.placeholder as string} {...field} error={fieldState.error?.message} />
-          )}
-        />
-      </div>
-    );
-  }
-
-  if (spec.kind === 'currency' || spec.kind === 'percent' || spec.kind === 'text') {
-    return (
-      <div className={col}>
-        <Controller
-          name={spec.name as string}
-          control={control}
-          render={({ field, fieldState }) => (
             <Input
-              label={spec.label as string}
-              placeholder={spec.placeholder as string}
-              value={
-                spec.kind === 'currency' ? formatCentsToCurrency(field.value) :
-                spec.kind === 'percent' ? (field.value ?? '') : field.value
+              type="date"
+              label={(spec as { label?: string }).label as string}
+              placeholder={(spec as { placeholder?: string }).placeholder as string}
+              value={field.value ?? ''} // keep controlled
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                field.onChange(e.target.value)
               }
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                if (spec.kind === 'currency') field.onChange(parseCurrencyToCents(e.target.value));
-                else if (spec.kind === 'percent') field.onChange(parsePercent(e.target.value));
-                else field.onChange(e);
-              }}
               error={fieldState.error?.message}
             />
           )}
@@ -128,6 +180,54 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
     );
   }
 
+  // ── Text / Currency / Percent ────────────────────────────────────────────────
+  if (
+    spec.kind === 'currency' ||
+    spec.kind === 'percent' ||
+    spec.kind === 'text'
+  ) {
+    return (
+      <div className={col}>
+        <Controller
+          name={spec.name as string}
+          control={control}
+          render={({ field, fieldState }) => {
+            const valueStr =
+              spec.kind === 'currency'
+                ? field.value == null
+                  ? ''
+                  : formatCentsToCurrency(field.value)
+                : spec.kind === 'percent'
+                ? field.value == null
+                  ? ''
+                  : String(field.value)
+                : field.value ?? '';
+
+            return (
+              <Input
+                label={(spec as { label?: string }).label as string}
+                placeholder={(spec as { placeholder?: string }).placeholder as string}
+                value={valueStr} // controlled string
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const raw = e.target.value;
+                  if (spec.kind === 'currency') {
+                    field.onChange(parseCurrencyToCents(raw));
+                  } else if (spec.kind === 'percent') {
+                    field.onChange(parsePercent(raw));
+                  } else {
+                    field.onChange(raw); // pass string, not event
+                  }
+                }}
+                error={fieldState.error?.message}
+              />
+            );
+          }}
+        />
+      </div>
+    );
+  }
+
+  // ── Fees repeater ────────────────────────────────────────────────────────────
   if (spec.kind === 'fees') {
     return <FeesRepeater name={spec.name as string} />;
   }
@@ -135,25 +235,41 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
   return null;
 }
 
-// ---- Fees repeater (USD/% switch + Pre/Post Split) ----
-function FeesRepeater({ name }:{ name:string }) {
-  const { control, setValue, watch } = useFormContext();
+// ───────────────────────────────────────────────────────────────────────────────
+// Fees repeater (USD/% switch + Pre/Post Split)
+// ───────────────────────────────────────────────────────────────────────────────
+function FeesRepeater({ name }: { name: string }) {
+  const { control, setValue } = useFormContext();
   const { fields, append, remove } = useFieldArray({ control, name });
 
   return (
-    <div className="col-span-12 space-y-4">
-      <Text as="label" size="sm" className="block">Other fees</Text>
+    <div className="col-span-12 space-y-6">
+      <Text as="label" size="sm" className="block">
+        Other fees
+      </Text>
+
       {fields.map((f, idx) => {
         const unitPath = `${name}.${idx}.unit` as const;
-        const unit = watch(unitPath);
+
         return (
-          <div key={f.id} className="grid grid-cols-12 gap-3 items-end">
+          <div
+            key={f.id}
+            className="grid grid-cols-12 gap-x-6 gap-y-6 items-end"
+          >
             <div className="col-span-12 md:col-span-4">
               <Controller
                 name={`${name}.${idx}.label` as const}
                 control={control}
                 render={({ field, fieldState }) => (
-                  <Input label="$ Other Fees" placeholder="$ Other Fees" {...field} error={fieldState.error?.message} />
+                  <Input
+                    label="$ Other Fees"
+                    placeholder="$ Other Fees"
+                    value={field.value ?? ''} // controlled
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      field.onChange(e.target.value)
+                    }
+                    error={fieldState.error?.message}
+                  />
                 )}
               />
             </div>
@@ -165,11 +281,22 @@ function FeesRepeater({ name }:{ name:string }) {
                 render={({ field }) => (
                   <Select
                     label="Unit"
-                    options={[{value:'usd',label:'USD'},{value:'percent',label:'%'}]}
-                    value={field.value}
-                    onChange={(v)=>{
-                      if (v === 'usd') setValue(`${name}.${idx}.percent` as const, undefined);
-                      else setValue(`${name}.${idx}.amount_cents` as const, undefined);
+                    options={[
+                      { value: 'usd', label: 'USD' },
+                      { value: 'percent', label: '%' },
+                    ]}
+                    value={field.value ?? ''} // controlled
+                    onChange={(v) => {
+                      if (v === 'usd')
+                        setValue(
+                          `${name}.${idx}.percent` as const,
+                          undefined
+                        );
+                      else
+                        setValue(
+                          `${name}.${idx}.amount_cents` as const,
+                          undefined
+                        );
                       field.onChange(v);
                     }}
                   />
@@ -183,14 +310,20 @@ function FeesRepeater({ name }:{ name:string }) {
                 control={control}
                 render={({ field }) => (
                   <div>
-                    <Text as="label" size="sm" className="mb-2 block">Split</Text>
+                    <Text as="label" size="sm" className="mb-2 block">
+                      Split
+                    </Text>
                     <ButtonGroup
                       variant="radio"
                       value={field.value}
                       onChange={field.onChange}
                     >
-                      <ButtonGroupItem value="pre_split">Pre-Split</ButtonGroupItem>
-                      <ButtonGroupItem value="post_split">Post-Split</ButtonGroupItem>
+                      <ButtonGroupItem value="pre_split">
+                        Pre-Split
+                      </ButtonGroupItem>
+                      <ButtonGroupItem value="post_split">
+                        Post-Split
+                      </ButtonGroupItem>
                     </ButtonGroup>
                   </div>
                 )}
@@ -198,27 +331,56 @@ function FeesRepeater({ name }:{ name:string }) {
             </div>
 
             <div className="col-span-10 md:col-span-2">
-              {unit === 'usd' ? (
-                <Controller
-                  name={`${name}.${idx}.amount_cents` as const}
-                  control={control}
-                  render={({ field }) => (
-                    <Input label="Amount" placeholder="$ 0.00" value={formatCentsToCurrency(field.value)} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>field.onChange(parseCurrencyToCents(e.target.value))} />
-                  )}
-                />
-              ) : (
-                <Controller
-                  name={`${name}.${idx}.percent` as const}
-                  control={control}
-                  render={({ field }) => (
-                    <Input label="Percent" placeholder="%" value={field.value ?? ''} onChange={(e: React.ChangeEvent<HTMLInputElement>)=>field.onChange(parsePercent(e.target.value))} />
-                  )}
-                />
-              )}
+              {/* Switch between USD / Percent editor based on current unit */}
+              <Controller
+                name={`${name}.${idx}.unit` as const}
+                control={control}
+                render={({ field: unitField }) =>
+                  unitField.value === 'usd' ? (
+                    <Controller
+                      name={`${name}.${idx}.amount_cents` as const}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          label="Amount"
+                          placeholder="$ 0.00"
+                          value={
+                            field.value == null
+                              ? ''
+                              : formatCentsToCurrency(field.value)
+                          }
+                          onChange={(
+                            e: React.ChangeEvent<HTMLInputElement>
+                          ) => field.onChange(parseCurrencyToCents(e.target.value))}
+                        />
+                      )}
+                    />
+                  ) : (
+                    <Controller
+                      name={`${name}.${idx}.percent` as const}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          label="Percent"
+                          placeholder="%"
+                          value={field.value == null ? '' : String(field.value)}
+                          onChange={(
+                            e: React.ChangeEvent<HTMLInputElement>
+                          ) => field.onChange(parsePercent(e.target.value))}
+                        />
+                      )}
+                    />
+                  )
+                }
+              />
             </div>
 
             <div className="col-span-2 md:col-span-1 flex justify-end">
-              <Button hierarchy="tertiary-gray" onClick={()=>remove(idx)} icon="trash">
+              <Button
+                hierarchy="tertiary-gray"
+                onClick={() => remove(idx)}
+                icon="trash"
+              >
                 <span className="sr-only">Remove fee</span>
               </Button>
             </div>
@@ -229,7 +391,15 @@ function FeesRepeater({ name }:{ name:string }) {
       <button
         type="button"
         className="text-green-700 hover:text-green-800 text-sm"
-        onClick={()=>append({ label:'', unit:'usd', basis:'pre_split', amount_cents:undefined, percent:undefined })}
+        onClick={() =>
+          append({
+            label: '',
+            unit: 'usd',
+            basis: 'pre_split',
+            amount_cents: undefined,
+            percent: undefined,
+          })
+        }
       >
         + Add Fee
       </button>
