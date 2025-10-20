@@ -98,35 +98,49 @@ export default function AddTransactionModal({
     setStepIdx(0);
   }, [activeVariant, initialData, methods, setStepIdx]);
 
-  const onSubmit = submitAll(async (payload) => {
-    const tx = payload as Record<string, unknown>;
-  
-    const leadSource =
-      tx.lead_source === 'other'
-        ? cleanString(tx.lead_source_other)
-        : cleanString(tx.lead_source);
-  
-    // keep numeric normalization helpers around, but we are not sending these fields yet
-  
-    // fees omitted from payload for now (table does not consume it yet)
-  
-    // 👉 Only include fields we’re confident the table has right now.
-    const clean: Partial<NewTransactionInput> = {
-      type: tx.type === 'seller' || tx.type === 'buyer' ? (tx.type as 'buyer' | 'seller') : 'buyer',
-      status: (TRANSACTION_STATUSES.includes(tx.status as TransactionStatus)
-        ? (tx.status as TransactionStatus)
-        : 'active') as TransactionStatus,
-      lead_source: leadSource,
-    };
-  
-    try {
-      await onSave?.(clean as NewTransactionInput);
-      onClose();
-    } catch (err) {
-      console.error('Save transaction failed:', err);
-      alert(`Could not save transaction: ${betterSerialize(err)}`);
-    }
-  });
+
+const onSubmit = submitAll(async (payload) => {
+  const tx = payload as Record<string, unknown>;
+
+  const leadSource =
+    tx.lead_source === 'other'
+      ? cleanString(tx.lead_source_other)
+      : cleanString(tx.lead_source);
+
+  // minimal, schema-safe payload
+  const clean: Record<string, unknown> = {
+    type:
+      tx.type === 'buyer' || tx.type === 'seller'
+        ? (tx.type as 'buyer' | 'seller')
+        : 'buyer',
+    status: TRANSACTION_STATUSES.includes(tx.status as TransactionStatus)
+      ? (tx.status as TransactionStatus)
+      : 'active',
+    lead_source: leadSource,
+  };
+
+  // 🔒 only one "name" field depending on type
+  if (clean.type === 'buyer') {
+    clean.buyer_full_name = cleanString(tx.buyer_full_name);
+  } else {
+    clean.owner_full_name = cleanString(tx.owner_full_name);
+  }
+
+  // strip null/undefined to avoid unknown/empty columns
+  for (const k of Object.keys(clean)) {
+    const v = clean[k];
+    if (v == null || v === '') delete clean[k];
+  }
+
+  try {
+    await onSave?.(clean as NewTransactionInput);
+    onClose();
+  } catch (err) {
+    console.error('Save transaction failed:', err);
+    alert(`Could not save transaction: ${betterSerialize(err)}`);
+  }
+});
+
   
 
   const stepper: Step[] = steps.map((s, i) => ({

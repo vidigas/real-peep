@@ -26,15 +26,20 @@ export default function SignInPage() {
 
   async function onLogin(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      setError(error.message || 'Invalid login credentials');
-      return;
-    }
-    router.push('/transactions');
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setError(error.message); return; }
+
+    await fetch('/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_token: data.session?.access_token,
+        refresh_token: data.session?.refresh_token,
+        expires_at: data.session?.expires_at,
+      }),
+      keepalive: true,
+    });
+    router.replace('/transactions');
   }
 
   const onForgot = (e: React.MouseEvent) => {

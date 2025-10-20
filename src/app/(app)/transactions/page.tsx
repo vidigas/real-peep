@@ -32,10 +32,18 @@ export default function TransactionsPage() {
   });
 
   const toBuyerRow = (r: TransactionRow) => ({
-    // pass through entire row for edit modal initialData
     ...r,
-    buyer: r.client_name ?? r.property_address ?? null,
-    location: [r.city, r.state].filter(Boolean).join(", ") || null,
+    // 1st line (title) can be empty/placeholder for now
+    buyer: r.property_address ?? null,
+  
+    // 2nd line (muted): prefer name saved in details, else any older columns
+    name_for_second_line:
+      (r.details?.buyer_full_name as string | undefined) ??
+      (r.details?.owner_full_name as string | undefined) ??
+      r.client_name ??
+      null,
+  
+    location: [r.city, r.state].filter(Boolean).join(', ') || null,
     start_date: r.agreement_start_date ?? r.listing_date ?? null,
   });
 
