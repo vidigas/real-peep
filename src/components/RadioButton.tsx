@@ -33,7 +33,7 @@ export function RadioButton({
 }: RadioButtonProps) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { children, ...inputProps } = props;
+  const { ...inputProps } = props;
 
   const sizeClasses = { sm: "w-4 h-4", md: "w-5 h-5", lg: "w-6 h-6" };
   const spacing = { sm: "gap-2", md: "gap-3", lg: "gap-4" };
