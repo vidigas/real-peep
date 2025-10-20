@@ -21,6 +21,8 @@ type DatePickerProps = {
   /** omit for full width; pass a number (px) or css width for fixed chip (e.g. 136 / "136px") */
   width?: number | string;
 };
+// Ensure the calendar popover always renders above app modals
+const PORTAL_Z = 2000;
 
 const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const CARD_W = 360;
@@ -202,7 +204,7 @@ export default function DatePicker({
 
       {open &&
         createPortal(
-          <div role="dialog" aria-modal="true" className="fixed z-[200]" style={{ top: coords.top, left: coords.left }}>
+          <div role="dialog" aria-modal="true" className="fixed" style={{ top: coords.top, left: coords.left, zIndex: PORTAL_Z }}>
             <div className="rounded-2xl border border-gray-200 bg-white shadow-xl" style={{ width: clampedW }}>
               {/* header */}
               <div className="px-6 pt-5 pb-5">
