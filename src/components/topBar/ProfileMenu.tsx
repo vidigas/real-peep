@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
 
 type ProfileMenuProps = {
   trigger: React.ReactNode;
   onOpenSettings?: () => void;
   onOpenBilling?: () => void;
   onOpenChecklists?: () => void;
-  onLogout?: () => void;
+  onLogout?: () => void; // optional override
 };
 
 export function ProfileMenu({
@@ -18,7 +20,9 @@ export function ProfileMenu({
   onLogout,
 }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Close on outside click
   useEffect(() => {
@@ -39,6 +43,30 @@ export function ProfileMenu({
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
+  async function handleLogout() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      const before = await supabase.auth.getSession();
+      console.log('session before signOut:', before.data.session?.user?.email);
+  
+      const { error } = await supabase.auth.signOut(); // client
+      if (error) console.error('client signOut error:', error);
+  
+      const r = await fetch('/api/auth/signout', { method: 'POST' }); // server
+      console.log('server signOut status:', r.status);
+  
+      const after = await supabase.auth.getSession();
+      console.log('session after signOut:', after.data.session);
+  
+      router.replace('/sign-in');
+      router.refresh();
+    } finally {
+      setSigningOut(false);
+    }
+  }
+  
+
   return (
     <div className="relative" ref={ref}>
       <div onClick={() => setOpen((v) => !v)}>{trigger}</div>
@@ -53,11 +81,7 @@ export function ProfileMenu({
             icon={<GearIcon />}
             label="Profile Settings"
             onClick={() => {
-              if (onOpenSettings) {
-                onOpenSettings();
-              } else {
-                console.log('Profile Settings pressed');
-              }
+              onOpenSettings ? onOpenSettings() : console.log('Profile Settings pressed');
               setOpen(false);
             }}
           />
@@ -65,11 +89,7 @@ export function ProfileMenu({
             icon={<CardIcon />}
             label="Billing"
             onClick={() => {
-              if (onOpenBilling) {
-                onOpenBilling();
-              } else {
-                console.log('Billing pressed');
-              }
+              onOpenBilling ? onOpenBilling() : console.log('Billing pressed');
               setOpen(false);
             }}
           />
@@ -77,26 +97,16 @@ export function ProfileMenu({
             icon={<ChecklistIcon />}
             label="Manage Checklists"
             onClick={() => {
-              if (onOpenChecklists) {
-                onOpenChecklists();
-              } else {
-                console.log('Manage Checklists pressed');
-              }
+              onOpenChecklists ? onOpenChecklists() : console.log('Manage Checklists pressed');
               setOpen(false);
             }}
           />
+
           <MenuItem
             icon={<LogoutIcon />}
-            label="Log Out"
+            label={signingOut ? 'Logging out…' : 'Log Out'}
             variant="danger"
-            onClick={() => {
-              if (onLogout) {
-                onLogout();
-              } else {
-                console.log('Log Out pressed');
-              }
-              setOpen(false);
-            }}
+            onClick={handleLogout}
           />
         </div>
       )}
@@ -142,11 +152,7 @@ function MenuItem({
 function GearIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-        stroke="#757575"
-        strokeWidth="1.8"
-      />
+      <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="#757575" strokeWidth="1.8" />
       <path
         d="M19.4 15a7.97 7.97 0 0 0 .2-2 7.97 7.97 0 0 0-.2-2l2.1-1.6-2-3.4-2.5 1a8.18 8.18 0 0 0-3.4-2l-.4-2.7h-4l-.4 2.7a8.18 8.18 0 0 0-3.4 2l-2.5-1-2 3.4 2.1 1.6a7.97 7.97 0 0 0-.2 2c0 .68.07 1.34.2 2l-2.1 1.6 2 3.4 2.5-1a8.18 8.18 0 0 0 3.4 2l.4 2.7h4l.4-2.7a8.18 8.18 0 0 0 3.4-2l2.5 1 2-3.4-2.1-1.6Z"
         stroke="#757575"
