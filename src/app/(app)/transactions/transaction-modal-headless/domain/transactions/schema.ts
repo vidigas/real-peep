@@ -35,6 +35,7 @@ export type StepSpec = {
   id: string;
   title: string;
   fields: FieldSpec[];
+  description?: string;
   /** Field names to validate for this step */
   fieldNames: string[];
 };

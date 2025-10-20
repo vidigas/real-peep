@@ -16,32 +16,21 @@ import type { VariantSpec } from '../../domain/transactions/schema';
 import { FieldRenderer } from './FieldRenderer';
 import { NewTransactionInput, Fee } from '../../../types';
 
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
 type TxnTypeAll = 'buyer' | 'seller' | 'tenant' | 'landlord';
 type TransactionType = 'buyer' | 'seller';
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  /** Callback to parent with final payload */
   onSave?: (payload: NewTransactionInput) => void | Promise<void>;
-  /** Optional existing data for edit mode */
   initialData?: Partial<NewTransactionInput>;
 };
 
-// -----------------------------------------------------------------------------
-// Map variant
-// -----------------------------------------------------------------------------
 const variantByType = {
   buyer: BuyerVariant,
   seller: SellerVariant,
 } as const;
 
-// -----------------------------------------------------------------------------
-// Component
-// -----------------------------------------------------------------------------
 export default function AddTransactionModal({
   isOpen,
   onClose,
@@ -59,7 +48,6 @@ export default function AddTransactionModal({
   const { methods, steps, step, stepIdx, setStepIdx, next, back, isLast, submitAll } =
     useTransactionForm(activeVariant);
 
-  // Reset defaults on type switch or new initialData
   React.useEffect(() => {
     const base = activeVariant.defaults as FieldValues;
     const init = initialData ? { ...base, ...initialData } : base;
@@ -67,13 +55,9 @@ export default function AddTransactionModal({
     setStepIdx(0);
   }, [activeVariant, initialData, methods, setStepIdx]);
 
-  // ---------------------------------------------------------------------------
-  // Submit: emit up to page
-  // ---------------------------------------------------------------------------
   const onSubmit = submitAll(async (payload) => {
     const tx = payload as { type: TxnTypeAll } & Record<string, unknown>;
 
-    // Convert variant payload → DB payload
     const clean: NewTransactionInput = {
       type: tx.type as 'buyer' | 'seller' | 'tenant' | 'landlord',
       status:
@@ -108,21 +92,19 @@ export default function AddTransactionModal({
       lead_source: typeof tx.lead_source === 'string' ? tx.lead_source : null,
       fees: Array.isArray(tx.fees) ? (tx.fees as Fee[]) : null,
     };
-    
 
     await onSave?.(clean);
     onClose();
   });
 
-  // Stepper progress
   const stepper: Step[] = steps.map((s, i) => ({
     id: s.id,
     status: i < stepIdx ? 'completed' : i === stepIdx ? 'active' : 'pending',
   }));
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
+  // optional description from schema (not typed) – used for the subtitle
+  const stepDescription = (step as { description?: string })?.description;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -130,23 +112,28 @@ export default function AddTransactionModal({
       title="Transaction Form"
       size="xl"
       contentClassName="p-0"
-    >
-      <div className="flex flex-col min-h-[607px] px-5">
-        {/* Stepper */}
-        <div className="mt-3">
+      subHeader={
+        <div className="px-5 pt-2 pb-3">
           <Stepper steps={stepper} current={stepIdx} className="w-full" />
         </div>
-
-        {/* Section title */}
-        <div className="mt-8">
+      }
+    >
+      {/* scrollable content */}
+      <div className="px-5">
+        {/* Title + optional subtitle */}
+        <div className="mt-6">
           <Text as="h3" size="xl" weight="bold" color="heading" className="leading-[30px]">
             {step.title}
           </Text>
+          {stepDescription && (
+            <Text as="p" size="md" weight="normal" color="heading" className="mt-1">
+              {stepDescription}
+            </Text>
+          )}
         </div>
 
         <TransactionFormProvider methods={methods}>
-          {/* Body */}
-          <ModalBody className="flex-1 overflow-y-auto pt-6 pb-0">
+          <ModalBody className="pt-6 pb-24">
             {step.id === 'type' ? (
               <section className="space-y-6">
                 <RadioGroup
@@ -158,6 +145,8 @@ export default function AddTransactionModal({
                 >
                   <RadioGroupItem value="buyer" label="Buyer" />
                   <RadioGroupItem value="seller" label="Seller" />
+                  {/* <RadioGroupItem value="tenant" label="Tenant" />
+                  <RadioGroupItem value="landlord" label="Landlord" /> */}
                 </RadioGroup>
               </section>
             ) : (
@@ -178,17 +167,12 @@ export default function AddTransactionModal({
             )}
           </ModalBody>
 
-          {/* Footer */}
           <ModalFooter>
             <div className="flex items-center gap-2">
               <Button hierarchy="tertiary-gray">+ Checklist</Button>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                hierarchy="secondary-gray"
-                disabled={stepIdx === 0}
-                onClick={back}
-              >
+              <Button hierarchy="secondary-gray" disabled={stepIdx === 0} onClick={back}>
                 Back
               </Button>
               {!isLast ? (

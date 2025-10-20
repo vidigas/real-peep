@@ -42,6 +42,7 @@ export const BuyerVariant: VariantSpec<BuyerForm> = {
     {
       id: 'type',
       title: 'Transaction Type',
+      description: 'Which type of transaction are you adding?',
       fields: [
         {
           name: 'type',

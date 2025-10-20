@@ -1,35 +1,77 @@
-# RealPeep - Real Estate Transaction Management
+# RealPeep - Real Estate Transaction Management Platform
 
-A modern web application for managing real estate transactions with a beautiful, intuitive interface built with Next.js 14, TypeScript, and Supabase.
+A modern, full-stack web application for managing real estate transactions with a beautiful, intuitive interface.
 
-## Features
+![RealPeep Logo](public/realpeep-logo.svg)
 
-- 🔐 **Authentication**: Secure email-based authentication with Supabase
-- 📊 **Transaction Management**: Create, view, edit, and delete transactions
-- 🏠 **Dual Transaction Types**: Support for both buyer and seller transactions
-- 📋 **Multi-step Wizard**: Intuitive 4-step wizard for creating transactions
-- 💰 **Commission Tracking**: Track broker splits, agent percentages, and fees
-- 📈 **Status Management**: Active, Pending, and Closed transaction statuses
-- 🎯 **Lead Source Tracking**: Track where leads come from
-- ✅ **Checklist Management**: Add custom checklists to transactions
-- 🔒 **Data Privacy**: Row-level security ensures users only see their own data
+## 🎯 Project Overview
 
-## Tech Stack
+RealPeep is a comprehensive real estate transaction management platform that allows agents to:
+- Create and manage buyer/seller transactions
+- Track commissions, fees, and lead sources
+- Monitor transaction statuses (Active, Pending, Closed)
+- Maintain data privacy with row-level security
+- Access a responsive, mobile-friendly interface
 
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
-- **UI Components**: Radix UI primitives with custom styling
-- **Forms**: React Hook Form with Zod validation
-- **Data Fetching**: SWR for client-side data management
-- **Backend**: Supabase (PostgreSQL + Auth + RLS)
-- **Styling**: Tailwind CSS with custom design system
+## ✨ Key Features
 
-## Getting Started
+### 🔐 Authentication & Security
+- **Email-based Authentication**: Secure magic link authentication via Supabase
+- **Row-Level Security (RLS)**: Users can only access their own transaction data
+- **Data Privacy**: Complete isolation between user accounts
+- **Session Management**: Persistent login sessions
+
+### 📊 Transaction Management
+- **Dual Transaction Types**: Support for both buyer and seller transactions
+- **Multi-step Wizard**: Intuitive 4-step form for creating/editing transactions
+- **CRUD Operations**: Full Create, Read, Update, Delete functionality
+- **Status Management**: Active, Pending, and Closed transaction statuses
+- **Real-time Updates**: Changes reflect immediately using SWR
+
+### 💰 Financial Tracking
+- **Commission Management**: Track broker splits and agent percentages
+- **Fee Tracking**: Add multiple fees with percentage or fixed amounts
+- **GCI Calculation**: Automatic gross commission income calculation
+- **Currency Support**: Multi-currency support (defaults to USD)
+
+### 📋 Advanced Features
+- **Lead Source Tracking**: Predefined sources plus custom "Other" option
+- **Checklist Management**: Add custom checklists to transactions
+- **Date Tracking**: List dates, expiration dates, and calculated days on market
+- **Status Filtering**: Filter transactions by status
+- **Responsive Design**: Works seamlessly on desktop and mobile
+
+## 🛠 Tech Stack
+
+### Frontend
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first CSS framework
+- **Radix UI** - Accessible component primitives
+- **React Hook Form** - Form handling with validation
+- **Zod** - Schema validation
+- **SWR** - Data fetching and caching
+- **Lucide React** - Icon library
+
+### Backend & Database
+- **Supabase** - Backend-as-a-Service
+- **PostgreSQL** - Relational database
+- **Row Level Security** - Database-level security
+- **Real-time subscriptions** - Live data updates
+
+### Development Tools
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **Turbopack** - Fast bundling
+- **TypeScript** - Static type checking
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
+- **Node.js 18+** - JavaScript runtime
+- **npm or yarn** - Package manager
+- **Supabase account** - Backend service
 
 ### 1. Clone and Install
 
@@ -39,75 +81,95 @@ cd RealPeep
 npm install
 ```
 
-### 2. Set up Supabase
+### 2. Environment Setup
 
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Go to Settings > API to get your project URL and anon key
-3. Create a `.env.local` file in the root directory:
+Run the automated setup script:
+
+```bash
+npm run setup
+```
+
+This creates a `.env.local` file with the required environment variables. Update it with your Supabase credentials:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
 
-### 3. Set up Database
+### 3. Supabase Configuration
 
-Run the following SQL in your Supabase SQL editor:
+1. **Create a Supabase project** at [supabase.com](https://supabase.com)
+2. **Get your credentials** from Settings > API
+3. **Run the database schema** in your Supabase SQL editor:
 
 ```sql
--- Transactions table
-create table if not exists public.transactions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  type text not null check (type in ('buyer','seller')),
-  status text not null default 'active' check (status in ('active','pending','closed')),
-  client_name text,                -- "Jane Doe"
-  property_address text,
-  city text,
-  state text,
-  zip text,
-  property_type text,              -- condo, house, etc.
-  list_date date,
-  expiration_date date,
-  days_on_market int,
-  list_price numeric,              -- seller flow
-  buyer_budget numeric,            -- buyer flow
-  broker_split_pct numeric,        -- "% to Broker"
-  listing_agent_pct numeric,       -- seller flow
-  buyer_agent_pct numeric,         -- buyer flow
-  gci numeric,                     -- gross commission income (optional compute client-side)
-  currency text default 'USD',
-  lead_source text,                -- dropdown label
-  lead_source_other text,          -- free text when "Other"
-  details jsonb not null default '[]', -- fees [{label,type:'percent|fixed',amount,preSplit:boolean}]
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+-- Enable Row Level Security
+ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
+
+-- Create transactions table
+CREATE TABLE IF NOT EXISTS public.transactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  type TEXT CHECK (type IN ('buyer', 'seller')) NOT NULL,
+  status TEXT CHECK (status IN ('active', 'pending', 'closed')) DEFAULT 'active',
+  client_name TEXT NOT NULL,
+  property_address TEXT,
+  city TEXT,
+  state TEXT,
+  zip TEXT,
+  property_type TEXT,
+  list_price DECIMAL(12,2),
+  buyer_budget DECIMAL(12,2),
+  listing_date DATE,
+  expiration_date DATE,
+  agreement_start_date DATE,
+  agreement_end_date DATE,
+  listing_agent_percentage DECIMAL(5,2),
+  buyer_agent_percentage DECIMAL(5,2),
+  broker_split_percentage DECIMAL(5,2),
+  gci DECIMAL(12,2),
+  lead_source TEXT,
+  currency TEXT DEFAULT 'USD',
+  details JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- RLS: privacy
-alter table public.transactions enable row level security;
+-- Enable RLS
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
-create policy "user can select own"
-on public.transactions for select
-using (auth.uid() = user_id);
+-- Create RLS policies
+CREATE POLICY "Users can view own transactions" ON public.transactions
+  FOR SELECT USING (auth.uid() = user_id);
 
-create policy "user can insert own"
-on public.transactions for insert
-with check (auth.uid() = user_id);
+CREATE POLICY "Users can insert own transactions" ON public.transactions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-create policy "user can update own"
-on public.transactions for update
-using (auth.uid() = user_id);
+CREATE POLICY "Users can update own transactions" ON public.transactions
+  FOR UPDATE USING (auth.uid() = user_id);
 
-create policy "user can delete own"
-on public.transactions for delete
-using (auth.uid() = user_id);
+CREATE POLICY "Users can delete own transactions" ON public.transactions
+  FOR DELETE USING (auth.uid() = user_id);
 
--- Helpful updated_at trigger
-create extension if not exists moddatetime;
-create trigger handle_updated_at
-before update on public.transactions
-for each row execute procedure moddatetime(updated_at);
+-- Create updated_at trigger
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_transactions_updated_at
+  BEFORE UPDATE ON public.transactions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS transactions_user_id_idx ON public.transactions(user_id);
+CREATE INDEX IF NOT EXISTS transactions_status_idx ON public.transactions(status);
+CREATE INDEX IF NOT EXISTS transactions_type_idx ON public.transactions(type);
+CREATE INDEX IF NOT EXISTS transactions_created_at_idx ON public.transactions(created_at);
 ```
 
 ### 4. Run the Development Server
@@ -118,92 +180,100 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Usage
+## 📱 Usage Guide
 
 ### Authentication
 
-1. Visit the app - you'll be redirected to the auth page
-2. Enter any email address to receive a magic link
-3. Check your email and click the magic link to sign in
+1. **Visit the app** - You'll be redirected to the sign-in page
+2. **Enter your email** - Use any valid email address
+3. **Check your email** - Click the magic link to authenticate
+4. **Access transactions** - You'll be redirected to the transactions page
 
-### Managing Transactions
+### Creating Transactions
 
-1. **Add Transaction**: Click the "Add Transaction" button to open the wizard
-2. **Choose Type**: Select either Buyer or Seller transaction
-3. **Fill Details**: Complete the multi-step form with property/client information
-4. **Set Commission**: Configure broker splits, agent percentages, and fees
-5. **Review & Save**: Review your transaction and set the status
+1. **Click "Add Transaction"** - Opens the multi-step wizard
+2. **Step 1 - Type & Checklist**: 
+   - Choose Buyer or Seller transaction
+   - Enter client name and lead source
+   - Add custom checklists
+3. **Step 2 - Details**:
+   - **Seller**: Property address, list price, listing dates
+   - **Buyer**: Budget range, agreement dates
+4. **Step 3 - Commission & Fees**:
+   - Set broker splits and agent percentages
+   - Add custom fees (pre/post-split)
+5. **Step 4 - Status**:
+   - Review all information
+   - Set transaction status
+   - Save the transaction
 
-### Transaction Types
 
-#### Seller Transactions
-- Property address and details
-- List price and dates
-- Listing agent percentage
-- Days on market calculation
-
-#### Buyer Transactions  
-- Buyer budget
-- Buyer agent percentage
-- Agreement start/end dates
-
-### Features
-
-- **Status Filtering**: Filter transactions by Active, Pending, or Closed
-- **Edit Transactions**: Click the edit icon to modify any transaction
-- **Delete Transactions**: Remove transactions with confirmation
-- **Real-time Updates**: Changes reflect immediately across the app
-- **Responsive Design**: Works on desktop and mobile devices
-
-## Project Structure
+## 🏗 Project Structure
 
 ```
-src/
-├── app/                    # Next.js app router
-│   ├── auth/              # Authentication pages
-│   ├── transactions/      # Main transactions page
-│   └── layout.tsx         # Root layout
-├── components/            # Reusable UI components
-│   ├── ui/               # Base UI components
-│   ├── transaction-wizard.tsx
-│   └── edit-transaction-wizard.tsx
-├── hooks/                # Custom React hooks
-│   ├── useAuth.ts
-│   └── useTransactions.ts
-└── lib/                  # Utilities and configuration
-    ├── supabase.ts       # Supabase client
-    ├── types.ts          # TypeScript types
-    └── utils.ts          # Helper functions
+RealPeep/
+├── src/
+│   ├── app/                          # Next.js App Router
+│   │   ├── (app)/                    # Protected app routes
+│   │   │   ├── layout.tsx            # App layout with navigation
+│   │   │   └── transactions/          # Main transactions page
+│   │   │       ├── page.tsx          # Transactions list page
+│   │   │       ├── TransactionTable.tsx
+│   │   │       ├── useTransactions.ts # Data fetching hook
+│   │   │       └── transaction-modal-headless/
+│   │   │           ├── components/
+│   │   │           │   └── transactions/
+│   │   │           │       ├── AddTransactionModal.tsx
+│   │   │           │       └── FieldRenderer.tsx
+│   │   │           └── domain/
+│   │   │               └── transactions/
+│   │   │                   ├── form-controller.tsx
+│   │   │                   ├── schema.ts
+│   │   │                   └── variants/
+│   │   │                       ├── buyer.ts
+│   │   │                       └── seller.ts
+│   │   ├── (auth)/                   # Authentication routes
+│   │   │   ├── layout.tsx            # Auth layout
+│   │   │   └── sign-in/
+│   │   │       └── page.tsx          # Sign-in page
+│   │   ├── api/                      # API routes
+│   │   │   └── auth/
+│   │   │       └── signout/
+│   │   │           └── route.ts
+│   │   ├── globals.css               # Global styles
+│   │   ├── layout.tsx                # Root layout
+│   │   └── page.tsx                  # Home page (redirects)
+│   ├── components/                    # Reusable UI components
+│   │   ├── ui/                       # Base UI components
+│   │   │   ├── Button.tsx
+│   │   │   ├── Input.tsx
+│   │   │   ├── Modal.tsx
+│   │   │   ├── Select.tsx
+│   │   │   └── Typography.tsx
+│   │   ├── table/
+│   │   │   └── EmptyTable.tsx
+│   │   ├── topBar/
+│   │   │   ├── TopBar.tsx
+│   │   │   └── ProfileMenu.tsx
+│   │   └── SideNav.tsx
+│   ├── hooks/                        # Custom React hooks
+│   │   └── useAuth.ts
+│   ├── lib/                          # Utilities and configuration
+│   │   ├── supabaseClient.ts         # Supabase client setup
+│   │   └── utils.ts                  # Helper functions
+│   └── providers/                    # React context providers
+│       ├── index.tsx
+│       └── newTransaction.tsx
+├── public/                           # Static assets
+│   ├── realpeep-logo.svg
+│   └── [other assets]
+├── scripts/                          # Utility scripts
+│   └── seed-users.ts
+├── supabase-schema.sql               # Database schema
+├── setup.js                          # Environment setup script
+├── package.json
+├── tailwind.config.js
+├── tsconfig.json
+└── README.md
 ```
 
-## Deployment
-
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Add your environment variables in Vercel dashboard
-4. Deploy!
-
-### Environment Variables for Production
-
-Make sure to set these in your deployment platform:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For support or questions, please open an issue in the GitHub repository.

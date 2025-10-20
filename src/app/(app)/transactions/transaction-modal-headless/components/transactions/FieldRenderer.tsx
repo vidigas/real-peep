@@ -13,6 +13,7 @@ import {
   Button,
 } from "@/components";
 import { Controller, useFormContext, useFieldArray } from "react-hook-form";
+import DatePicker from "@/components/DatePicker";
 
 function parseCurrencyToCents(input: string): number | undefined {
   if (!input) return undefined;
@@ -60,16 +61,37 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
 
   // ── Subsection title (visual-only) ────────────────────────────────────────────
   if (spec.kind === "section-title") {
+    const { title, description } = spec as {
+      title?: string;
+      description?: string;
+    };
+
     return (
-      <div className="col-span-12 mt-10 mb-2">
+      <div className="col-span-12 mt-12">
         <Text
           as="h4"
-          size="lg"
+          size="xl"
           weight="bold"
-          className="text-gray-900 leading-[28px]"
+          color="heading"
+          className="leading-[30px]"
         >
-          {String((spec as { title?: string }).title ?? "")}
+          {String(title ?? "")}
         </Text>
+
+        {description ? (
+          <Text
+            as="p"
+            size="md"
+            weight="normal"
+            color="heading"
+            className="mt-1 leading-[24px] mb-4"
+          >
+            {description}
+          </Text>
+        ) : (
+          // keep 16px gap to next label when there is no description
+          <div className="mb-4" />
+        )}
       </div>
     );
   }
@@ -178,23 +200,35 @@ export function FieldRenderer({ spec }: { spec: Record<string, unknown> }) {
 
   // ── Date ─────────────────────────────────────────────────────────────────────
   if (spec.kind === "date") {
+    const label = (spec as { label?: string }).label as string;
+    const placeholder = (spec as { placeholder?: string })
+      .placeholder as string;
+    const min = (spec as { min?: string }).min;
+    const max = (spec as { max?: string }).max;
+    const id = (spec as { id?: string }).id as string | undefined;
+
     return (
       <div className={col}>
         <Controller
           name={spec.name as string}
           control={control}
           render={({ field, fieldState }) => (
-            <Input
-              type="date"
-              label={(spec as { label?: string }).label as string}
-              placeholder={
-                (spec as { placeholder?: string }).placeholder as string
-              }
-              value={field.value ?? ""} // keep controlled
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                field.onChange(e.target.value)
-              }
+            <DatePicker
+              id={id}
+              label={label}
+              placeholder={placeholder}
+              value={field.value ?? null}
+              onChange={(v) => field.onChange(v)}
+              min={min}
+              max={max}
               error={fieldState.error?.message}
+              displayLocale="en-US"
+              displayOptions={{
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }}
+              width={136} // 👈 fixed chip width
             />
           )}
         />
