@@ -99,48 +99,54 @@ export default function AddTransactionModal({
   }, [activeVariant, initialData, methods, setStepIdx]);
 
 
-const onSubmit = submitAll(async (payload) => {
-  const tx = payload as Record<string, unknown>;
-
-  const leadSource =
-    tx.lead_source === 'other'
-      ? cleanString(tx.lead_source_other)
-      : cleanString(tx.lead_source);
-
-  // minimal, schema-safe payload
-  const clean: Record<string, unknown> = {
-    type:
-      tx.type === 'buyer' || tx.type === 'seller'
-        ? (tx.type as 'buyer' | 'seller')
-        : 'buyer',
-    status: TRANSACTION_STATUSES.includes(tx.status as TransactionStatus)
-      ? (tx.status as TransactionStatus)
-      : 'active',
-    lead_source: leadSource,
-  };
-
-  // 🔒 only one "name" field depending on type
-  if (clean.type === 'buyer') {
-    clean.buyer_full_name = cleanString(tx.buyer_full_name);
-  } else {
-    clean.owner_full_name = cleanString(tx.owner_full_name);
-  }
-
-  // strip null/undefined to avoid unknown/empty columns
-  for (const k of Object.keys(clean)) {
-    const v = clean[k];
-    if (v == null || v === '') delete clean[k];
-  }
-
-  try {
-    await onSave?.(clean as NewTransactionInput);
-    onClose();
-  } catch (err) {
-    console.error('Save transaction failed:', err);
-    alert(`Could not save transaction: ${betterSerialize(err)}`);
-  }
-});
-
+  const onSubmit = submitAll(async (payload) => {
+    const tx = payload as Record<string, unknown>;
+  
+    const type: 'buyer' | 'seller' =
+      tx.type === 'buyer' || tx.type === 'seller' ? (tx.type as 'buyer' | 'seller') : 'buyer';
+  
+    const status =
+      TRANSACTION_STATUSES.includes(tx.status as TransactionStatus)
+        ? (tx.status as TransactionStatus)
+        : 'active';
+  
+    const lead_source =
+      tx.lead_source === 'other'
+        ? cleanString(tx.lead_source_other)
+        : cleanString(tx.lead_source);
+  
+    // 👇 derive a single display name for the column we just added
+    const client_name =
+      cleanString(tx.buyer_full_name) ??
+      cleanString(tx.owner_full_name) ??
+      cleanString(tx.client_name) ??
+      null;
+  
+    const clean: Partial<NewTransactionInput> = {
+      type,
+      status,
+      client_name: client_name ?? undefined,                 // ✅ matches new DB column
+      lead_source: lead_source ?? undefined,
+      // include other known-good columns if you want (dates, price, etc.)
+      // e.g. property_address: cleanString(tx.property_address),
+    };
+  
+    // strip empty values
+    for (const k of Object.keys(clean)) {
+      const v = clean[k as keyof Partial<NewTransactionInput>];
+      if (v == null || v === '') delete clean[k as keyof Partial<NewTransactionInput>];
+    }
+  
+    try {
+      await onSave?.(clean as NewTransactionInput);
+      onClose();
+    } catch (err) {
+      console.error('Save transaction failed:', err);
+      alert(`Could not save transaction: ${betterSerialize(err)}`);
+    }
+  });
+  
+  
   
 
   const stepper: Step[] = steps.map((s, i) => ({
