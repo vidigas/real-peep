@@ -1,15 +1,15 @@
 'use client';
-import React from 'react';
+
+import * as React from 'react';
 import { Input, type BaseInputProps } from '@/components/Input';
 
 type Props = Omit<BaseInputProps, 'type' | 'inputMode' | 'pattern' | 'onChange' | 'value'> & {
   value?: number | null;
   onChange?: (value: number | null) => void;
-  currency?: string; // e.g., 'USD', 'BRL'
-  locale?: string;   // e.g., 'en-US', 'pt-BR'
+  currency?: string;
+  locale?: string;
   min?: number;
   max?: number;
-  step?: number;
 };
 
 export function CurrencyInput({
@@ -29,10 +29,7 @@ export function CurrencyInput({
     setDisplay(value == null ? '' : nf.format(value));
   }, [value, nf]);
 
-  const currencySymbol = React.useMemo(() => {
-    const part = nf.formatToParts(0).find(p => p.type === 'currency');
-    return part?.value ?? '$';
-  }, [nf]);
+  const symbol = React.useMemo(() => nf.formatToParts(0).find((p) => p.type === 'currency')?.value ?? '$', [nf]);
 
   const parse = (raw: string): number | null => {
     const normalized = raw.replace(/[^\d.,-]/g, '').replace(/\.(?=.*\.)/g, '').replace(',', '.');
@@ -50,19 +47,21 @@ export function CurrencyInput({
         const raw = e.target.value;
         setDisplay(raw);
         const parsed = parse(raw);
-        if (onChange) {
-          if (parsed == null) return onChange(null);
-          let v = parsed;
-          if (min != null && v < min) v = min;
-          if (max != null && v > max) v = max;
-          onChange(v);
+        if (!onChange) return;
+        if (parsed == null) {
+          onChange(null);
+          return;
         }
+        let v = parsed;
+        if (min != null && v < min) v = min;
+        if (max != null && v > max) v = max;
+        onChange(v);
       }}
       onBlur={(e) => {
         const parsed = parse(e.target.value);
         setDisplay(parsed == null ? '' : nf.format(parsed));
       }}
-      leftIcon={leftIcon ?? <span className="text-gray-500">{currencySymbol}</span>}
+      leftIcon={leftIcon ?? <span className="text-gray-500">{symbol}</span>}
     />
   );
 }

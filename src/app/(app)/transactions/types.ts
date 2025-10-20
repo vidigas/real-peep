@@ -18,13 +18,25 @@ export interface TransactionRow {
   user_id: string;
   type: TransactionType;
   status: TransactionStatus;
-  listing: string | null;
-  list_date: string | null;        // ISO date
-  expiration_date: string | null;  // ISO date
-  list_price_cents: number | null;
-  gci_cents: number | null;
+  client_name: string;
+  property_address: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  property_type: string | null;
+  list_price: number | null;
+  buyer_budget: number | null;
+  listing_date: string | null;        // ISO date
+  expiration_date: string | null;    // ISO date
+  agreement_start_date: string | null;
+  agreement_end_date: string | null;
+  listing_agent_percentage: number | null;
+  buyer_agent_percentage: number | null;
+  broker_split_percentage: number | null;
+  gci: number | null;
   lead_source: string | null;
-  fees: Fee[] | null;
+  currency: string;
+  details: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }

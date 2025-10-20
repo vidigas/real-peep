@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Modal, ModalBody, ModalFooter } from '@/components/Modal';
 import Stepper, { type Step } from '@/components/Stepper';
 import { RadioGroup, RadioGroupItem } from '@/components/RadioGroup';
 import { Button } from '@/components/Button';
@@ -14,9 +13,45 @@ import {
 } from '../../domain/transactions/form-controller';
 import type { VariantSpec } from '../../domain/transactions/schema';
 import { FieldRenderer } from './FieldRenderer';
-import { NewTransactionInput, Fee } from '../../../types';
+import type { NewTransactionInput, TransactionStatus } from '../../../types';
+import { TRANSACTION_STATUSES } from '../../../types';
+import { Modal, ModalBody, ModalFooter } from '@/components';
 
-type TxnTypeAll = 'buyer' | 'seller' | 'tenant' | 'landlord';
+/* ---------------------- helpers ---------------------- */
+const isFiniteNumber = (n: unknown): n is number =>
+  typeof n === 'number' && Number.isFinite(n);
+
+const toCents = (n: unknown): number | null => {
+  if (isFiniteNumber(n)) return Math.round(n * 100);
+  return null;
+};
+
+// date parsing helper removed (unused)
+
+const cleanString = (v: unknown): string | null => {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return s.length ? s : null;
+};
+
+const betterSerialize = (e: unknown) => {
+  if (e instanceof Error) return `${e.name}: ${e.message}`;
+  try {
+    return JSON.stringify(e);
+  } catch {
+    return String(e);
+  }
+};
+/* ----------------------------------------------------- */
+
+/* ---------------------- fixed design metrics ---------------------- */
+const PANEL_H = 647;
+const TITLE_ROW_H = 56; // header (px-6 pt-6 pb-0)
+const SUBHEADER_H = 48; // Stepper wrapper
+const FOOTER_H = 64; // footer visual height (py-3 + button height)
+const SCROLL_H = `calc(${PANEL_H}px - ${TITLE_ROW_H}px - ${SUBHEADER_H}px - ${FOOTER_H}px)`;
+/* ------------------------------------------------------------------ */
+
 type TransactionType = 'buyer' | 'seller';
 
 type Props = {
@@ -41,12 +76,20 @@ export default function AddTransactionModal({
     (initialData?.type as TransactionType) ?? 'buyer'
   );
 
-  const activeVariant = (variantByType[type] ?? BuyerVariant) as unknown as VariantSpec<
-    Record<string, unknown>
-  >;
+  const activeVariant = (variantByType[type] ??
+    BuyerVariant) as unknown as VariantSpec<Record<string, unknown>>;
 
-  const { methods, steps, step, stepIdx, setStepIdx, next, back, isLast, submitAll } =
-    useTransactionForm(activeVariant);
+  const {
+    methods,
+    steps,
+    step,
+    stepIdx,
+    setStepIdx,
+    next,
+    back,
+    isLast,
+    submitAll,
+  } = useTransactionForm(activeVariant);
 
   React.useEffect(() => {
     const base = activeVariant.defaults as FieldValues;
@@ -56,53 +99,41 @@ export default function AddTransactionModal({
   }, [activeVariant, initialData, methods, setStepIdx]);
 
   const onSubmit = submitAll(async (payload) => {
-    const tx = payload as { type: TxnTypeAll } & Record<string, unknown>;
-
-    const clean: NewTransactionInput = {
-      type: tx.type as 'buyer' | 'seller' | 'tenant' | 'landlord',
-      status:
-        (['active', 'pending', 'closed'] as const).includes(tx.status as 'active' | 'pending' | 'closed')
-          ? (tx.status as 'active' | 'pending' | 'closed')
-          : 'active',
-      listing: typeof tx.property_address === 'string' ? tx.property_address : null,
-      list_date:
-        typeof tx.list_date === 'string'
-          ? tx.list_date
-          : tx.list_date instanceof Date
-          ? tx.list_date.toISOString().split('T')[0]
-          : null,
-      expiration_date:
-        typeof tx.expiration_date === 'string'
-          ? tx.expiration_date
-          : tx.expiration_date instanceof Date
-          ? tx.expiration_date.toISOString().split('T')[0]
-          : null,
-      list_price_cents:
-        typeof tx.list_price_cents === 'number'
-          ? tx.list_price_cents
-          : typeof tx.list_price === 'number'
-          ? Math.round(tx.list_price * 100)
-          : null,
-      gci_cents:
-        typeof tx.gci_cents === 'number'
-          ? tx.gci_cents
-          : typeof tx.gci === 'number'
-          ? Math.round(tx.gci * 100)
-          : null,
-      lead_source: typeof tx.lead_source === 'string' ? tx.lead_source : null,
-      fees: Array.isArray(tx.fees) ? (tx.fees as Fee[]) : null,
+    const tx = payload as Record<string, unknown>;
+  
+    const leadSource =
+      tx.lead_source === 'other'
+        ? cleanString(tx.lead_source_other)
+        : cleanString(tx.lead_source);
+  
+    // keep numeric normalization helpers around, but we are not sending these fields yet
+  
+    // fees omitted from payload for now (table does not consume it yet)
+  
+    // 👉 Only include fields we’re confident the table has right now.
+    const clean: Partial<NewTransactionInput> = {
+      type: tx.type === 'seller' || tx.type === 'buyer' ? (tx.type as 'buyer' | 'seller') : 'buyer',
+      status: (TRANSACTION_STATUSES.includes(tx.status as TransactionStatus)
+        ? (tx.status as TransactionStatus)
+        : 'active') as TransactionStatus,
+      lead_source: leadSource,
     };
-
-    await onSave?.(clean);
-    onClose();
+  
+    try {
+      await onSave?.(clean as NewTransactionInput);
+      onClose();
+    } catch (err) {
+      console.error('Save transaction failed:', err);
+      alert(`Could not save transaction: ${betterSerialize(err)}`);
+    }
   });
+  
 
   const stepper: Step[] = steps.map((s, i) => ({
     id: s.id,
     status: i < stepIdx ? 'completed' : i === stepIdx ? 'active' : 'pending',
   }));
 
-  // optional description from schema (not typed) – used for the subtitle
   const stepDescription = (step as { description?: string })?.description;
 
   return (
@@ -111,31 +142,34 @@ export default function AddTransactionModal({
       onClose={onClose}
       title="Transaction Form"
       size="xl"
-      contentClassName="p-0"
+      // ❗ Use literal classes so Tailwind generates them
+      panelClassName="w-[888px] h-[647px] max-h-[85vh]"
+      contentClassName="p-0 flex h-full flex-col"
+      headerClassName="px-6 pt-6 pb-0 h-[56px]"
       subHeader={
-        <div className="px-5 pt-2 pb-3">
+        <div className="px-6 h-[48px] flex items-center">
           <Stepper steps={stepper} current={stepIdx} className="w-full" />
         </div>
       }
     >
-      {/* scrollable content */}
-      <div className="px-5">
-        {/* Title + optional subtitle */}
-        <div className="mt-6">
-          <Text as="h3" size="xl" weight="bold" color="heading" className="leading-[30px]">
-            {step.title}
-          </Text>
-          {stepDescription && (
-            <Text as="p" size="md" weight="normal" color="heading" className="mt-1">
-              {stepDescription}
-            </Text>
-          )}
-        </div>
-
+      {/* Scrollable middle: no side padding here to avoid double gutters */}
+      <div className="overflow-y-auto" style={{ height: SCROLL_H }}>
         <TransactionFormProvider methods={methods}>
-          <ModalBody className="pt-6 pb-24">
+          {/* Single padded body = 24px sides, aligned with header/stepper */}
+          <ModalBody className="pt-6 pb-8">
+            <div className="mb-6">
+              <Text as="h3" size="md" className="text-[20px] leading-[30px] font-bold text-[#1A1A1A]">
+                {step.title}
+              </Text>
+              {stepDescription && (
+                <Text as="p" size="sm" className="mt-1 text-[14px] leading-[22px] text-[#1A1A1A]">
+                  {stepDescription}
+                </Text>
+              )}
+            </div>
+
             {step.id === 'type' ? (
-              <section className="space-y-6">
+              <section className="mt-6">
                 <RadioGroup
                   value={type}
                   onChange={(v) => setType(v as TransactionType)}
@@ -145,8 +179,6 @@ export default function AddTransactionModal({
                 >
                   <RadioGroupItem value="buyer" label="Buyer" />
                   <RadioGroupItem value="seller" label="Seller" />
-                  {/* <RadioGroupItem value="tenant" label="Tenant" />
-                  <RadioGroupItem value="landlord" label="Landlord" /> */}
                 </RadioGroup>
               </section>
             ) : (
@@ -156,38 +188,34 @@ export default function AddTransactionModal({
                     const ls = methods.watch('lead_source' as keyof FieldValues);
                     if (ls !== 'other') return null;
                   }
-                  return (
-                    <FieldRenderer
-                      key={String(spec.name)}
-                      spec={spec as Record<string, unknown>}
-                    />
-                  );
+                  return <FieldRenderer key={String(spec.name)} spec={spec as Record<string, unknown>} />;
                 })}
               </div>
             )}
           </ModalBody>
-
-          <ModalFooter>
-            <div className="flex items-center gap-2">
-              <Button hierarchy="tertiary-gray">+ Checklist</Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button hierarchy="secondary-gray" disabled={stepIdx === 0} onClick={back}>
-                Back
-              </Button>
-              {!isLast ? (
-                <Button hierarchy="primary" onClick={next}>
-                  Next
-                </Button>
-              ) : (
-                <Button hierarchy="primary" onClick={onSubmit}>
-                  Save
-                </Button>
-              )}
-            </div>
-          </ModalFooter>
         </TransactionFormProvider>
       </div>
+
+      {/* Fixed footer — gutters come from ModalFooter (px-6 py-3); 8px between buttons */}
+      <ModalFooter className="sticky bottom-0 z-10">
+        <div className="flex items-center gap-2">
+          <Button hierarchy="tertiary-gray">+ Checklist</Button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button hierarchy="secondary-gray" onClick={back} disabled={stepIdx === 0}>
+            Back
+          </Button>
+          {!isLast ? (
+            <Button hierarchy="primary" onClick={next}>
+              Next
+            </Button>
+          ) : (
+            <Button hierarchy="primary" onClick={onSubmit}>
+              Save
+            </Button>
+          )}
+        </div>
+      </ModalFooter>
     </Modal>
   );
 }

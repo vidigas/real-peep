@@ -5,9 +5,10 @@ import { useNewTransactionModal } from "@/providers";
 import AddTransactionModal from "./transaction-modal-headless/components/transactions/AddTransactionModal";
 import { Display, Text } from "@/components/Typography";
 import { NewTransactionInput } from "./types";
+import type { TransactionRow } from "./types";
 import { useTransactions } from "./useTransactions";
-import { EmptyStateTable, TableCardHeader, TableCard, TableHeaderRow } from "@/components/table/EmptyTable";
-import TransactionTable from "./TransactionTable";
+import BuyersTableCard from "@/components/transantions/BuyersTableCard";
+import ListingsTableCard from "@/components/transantions/ListingTableCard";
 
 const tabs = ["All", "Active", "Pending", "Closed"] as const;
 type Tab = (typeof tabs)[number];
@@ -21,6 +22,22 @@ export default function TransactionsPage() {
     active === "All"
       ? rows
       : rows.filter((r) => r.status.toLowerCase() === active.toLowerCase());
+
+  const toListingRow = (r: TransactionRow) => ({
+    // pass through entire row for edit modal initialData
+    ...r,
+    listing: r.property_address ?? r.client_name ?? null,
+    location: [r.city, r.state].filter(Boolean).join(", ") || null,
+    list_date: r.listing_date ?? null,
+  });
+
+  const toBuyerRow = (r: TransactionRow) => ({
+    // pass through entire row for edit modal initialData
+    ...r,
+    buyer: r.client_name ?? r.property_address ?? null,
+    location: [r.city, r.state].filter(Boolean).join(", ") || null,
+    start_date: r.agreement_start_date ?? r.listing_date ?? null,
+  });
 
   return (
     <div className="min-h-full">
@@ -76,35 +93,31 @@ export default function TransactionsPage() {
       </section>
 
       {/* ---------- Main Content ---------- */}
-      <main className="px-6 pt-0 pb-8">
+      <main className="px-6 pt-0 pb-8 space-y-6">
         {loading ? (
           <div className="py-10 text-center">
             <Text size="md" color="muted">
               Loading…
             </Text>
           </div>
-        ) : filteredRows.length === 0 ? (
-          <TableCard>
-            <TableCardHeader
-              title="Listings"
-              onRefresh={() => console.log("Refresh Listings pressed")}
-            />
-            <TableHeaderRow />
-            <div className="px-6 pb-8">
-              <EmptyStateTable
-                heading="Listings"
-                subtitle="Add a listing to track status, lead source, and commissions."
-              />
-            </div>
-          </TableCard>
         ) : (
-          <TransactionTable
-            rows={filteredRows}
-            onEdit={(row) => console.log("Edit transaction", row.id)}
-            onDelete={async (row) => {
-              await remove(row.id);
-            }}
-          />
+          <>
+            <ListingsTableCard
+              rows={filteredRows.filter((r) => r.type === "seller").map(toListingRow)}
+              onDelete={async (row) => {
+                await remove(row.id);
+              }}
+              onRefresh={() => console.log("Refresh Listings")}
+            />
+
+            <BuyersTableCard
+              rows={filteredRows.filter((r) => r.type === "buyer").map(toBuyerRow)}
+              onDelete={async (row) => {
+                await remove(row.id);
+              }}
+              onRefresh={() => console.log("Refresh Buyers")}
+            />
+          </>
         )}
       </main>
 
