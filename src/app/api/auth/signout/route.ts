@@ -12,10 +12,10 @@ export async function POST(req: NextRequest) {
         // read from the incoming request
         get: (name: string) => req.cookies.get(name)?.value,
         // write to the outgoing response
-        set: (name: string, value: string, options: any) => {
+        set: (name: string, value: string, options: Record<string, unknown>) => {
           res.cookies.set(name, value, options);
         },
-        remove: (name: string, options: any) => {
+        remove: (name: string, options: Record<string, unknown>) => {
           // clearing cookie = set same name with maxAge 0
           res.cookies.set(name, '', { ...options, maxAge: 0 });
         },

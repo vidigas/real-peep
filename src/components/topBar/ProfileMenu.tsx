@@ -9,7 +9,6 @@ type ProfileMenuProps = {
   onOpenSettings?: () => void;
   onOpenBilling?: () => void;
   onOpenChecklists?: () => void;
-  onLogout?: () => void; // optional override
 };
 
 export function ProfileMenu({
@@ -17,7 +16,6 @@ export function ProfileMenu({
   onOpenSettings,
   onOpenBilling,
   onOpenChecklists,
-  onLogout,
 }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -81,7 +79,11 @@ export function ProfileMenu({
             icon={<GearIcon />}
             label="Profile Settings"
             onClick={() => {
-              onOpenSettings ? onOpenSettings() : console.log('Profile Settings pressed');
+              if (onOpenSettings) {
+                onOpenSettings();
+              } else {
+                console.log('Profile Settings pressed');
+              }
               setOpen(false);
             }}
           />
@@ -89,7 +91,11 @@ export function ProfileMenu({
             icon={<CardIcon />}
             label="Billing"
             onClick={() => {
-              onOpenBilling ? onOpenBilling() : console.log('Billing pressed');
+              if (onOpenBilling) {
+                onOpenBilling();
+              } else {
+                console.log('Billing pressed');
+              }
               setOpen(false);
             }}
           />
@@ -97,7 +103,11 @@ export function ProfileMenu({
             icon={<ChecklistIcon />}
             label="Manage Checklists"
             onClick={() => {
-              onOpenChecklists ? onOpenChecklists() : console.log('Manage Checklists pressed');
+              if (onOpenChecklists) {
+                onOpenChecklists();
+              } else {
+                console.log('Manage Checklists pressed');
+              }
               setOpen(false);
             }}
           />
